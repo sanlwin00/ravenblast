@@ -1,4 +1,4 @@
-import type { SmtpProfile, BlastConfig, BlastProgress, BlastSummary } from '../types'
+import type { SmtpProfile, BlastConfig, BlastProgress, BlastSummary, Template } from '../types'
 
 declare global {
   interface Window {
@@ -22,6 +22,14 @@ declare global {
 
       historyList(): Promise<BlastSummary[]>
       historyGet(sessionId: string): Promise<BlastSummary | null>
+
+      templatesList(): Promise<Template[]>
+      templatesSave(t: Partial<Template>): Promise<{ ok: boolean }>
+      templatesDelete(id: string): Promise<{ ok: boolean }>
+
+      aiGetKey(): Promise<string>
+      aiSetKey(key: string): Promise<{ ok: boolean }>
+      aiChat(messages: Array<{ role: string; content: string }>): Promise<{ content?: string; error?: string }>
 
       onBlastProgress(cb: (progress: BlastProgress) => void): () => void
       onBlastComplete(cb: (summary: BlastSummary) => void): () => void

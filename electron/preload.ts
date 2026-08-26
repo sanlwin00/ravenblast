@@ -23,6 +23,16 @@ contextBridge.exposeInMainWorld('api', {
   historyList: () => ipcRenderer.invoke('history:list'),
   historyGet: (sessionId: string) => ipcRenderer.invoke('history:get', sessionId),
 
+  // Templates
+  templatesList: () => ipcRenderer.invoke('templates:list'),
+  templatesSave: (t: unknown) => ipcRenderer.invoke('templates:save', t),
+  templatesDelete: (id: string) => ipcRenderer.invoke('templates:delete', id),
+
+  // AI Chat
+  aiGetKey: () => ipcRenderer.invoke('ai:get-key'),
+  aiSetKey: (key: string) => ipcRenderer.invoke('ai:set-key', key),
+  aiChat: (messages: unknown) => ipcRenderer.invoke('ai:chat', messages),
+
   // Push: main → renderer
   onBlastProgress: (cb: (progress: unknown) => void) => {
     const handler = (_: IpcRendererEvent, data: unknown) => cb(data)

@@ -59,3 +59,16 @@ export interface BlastSummary {
   smtpProfile: string
   subject: string
 }
+
+export interface Template {
+  id: string
+  name: string
+  subject: string
+  bodyHtml: string
+  createdAt: string
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system'
+  content: string
+}

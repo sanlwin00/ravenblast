@@ -5,6 +5,8 @@ import { registerBlastHandlers } from './handlers/blast'
 import { registerContactHandlers } from './handlers/contacts'
 import { registerMsgHandlers } from './handlers/msgParser'
 import { registerHistoryHandlers } from './handlers/history'
+import { registerTemplateHandlers } from './handlers/templates'
+import { registerAiChatHandlers } from './handlers/aiChat'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -38,6 +40,8 @@ app.whenReady().then(() => {
   registerContactHandlers()
   registerMsgHandlers()
   registerHistoryHandlers()
+  registerTemplateHandlers()
+  registerAiChatHandlers()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

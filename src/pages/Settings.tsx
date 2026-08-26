@@ -20,6 +20,18 @@ export default function Settings() {
   const [editing, setEditing] = useState<ProfileDraft | null>(null)
   const [showPw, setShowPw] = useState(false)
   const [testResult, setTestResult] = useState<{ id: string; ok: boolean; error?: string } | null>(null)
+  const [openaiKey, setOpenaiKey] = useState('')
+  const [openaiStatus, setOpenaiStatus] = useState('')
+
+  useEffect(() => {
+    ipc.aiGetKey().then(k => { if (k) setOpenaiKey(k) })
+  }, [])
+
+  async function saveOpenaiKey() {
+    await ipc.aiSetKey(openaiKey)
+    setOpenaiStatus('API key saved')
+    setTimeout(() => setOpenaiStatus(''), 3000)
+  }
 
   async function loadProfiles() {
     const list = await ipc.smtpList()
@@ -90,6 +102,26 @@ export default function Settings() {
           </div>
         )}
       </div>
+
+      {/* OpenAI API Key */}
+      <section className="mt-10">
+        <h2 className="text-xl font-bold mb-4">AI Assistant</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+          <label className="block text-sm font-medium mb-1">OpenAI API Key</label>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Used for the AI chat sidebar. Your key is stored locally and never shared.</p>
+          <div className="flex gap-3">
+            <input
+              type="password"
+              value={openaiKey}
+              onChange={e => setOpenaiKey(e.target.value)}
+              placeholder="sk-..."
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 h-12 text-base bg-white dark:bg-gray-800 focus:outline-none focus:border-blue-500"
+            />
+            <button onClick={saveOpenaiKey} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded">Save</button>
+          </div>
+          {openaiStatus && <p className="mt-2 text-green-600 dark:text-green-400 text-sm font-medium">{openaiStatus}</p>}
+        </div>
+      </section>
 
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

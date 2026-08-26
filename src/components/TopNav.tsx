@@ -1,44 +1,37 @@
-import { NavLink } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 interface Props {
   dark: boolean
   onToggleDark: () => void
+  aiOpen: boolean
+  onToggleAI: () => void
 }
 
-const navLinks = [
-  { to: '/', label: 'Compose', end: true },
-  { to: '/history', label: 'History', end: false },
-  { to: '/settings', label: 'Settings', end: false }
-]
+export default function TopNav({ dark, onToggleDark, aiOpen, onToggleAI }: Props) {
+  const loc = useLocation()
+  const active = (path: string) =>
+    loc.pathname === path
+      ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 font-semibold'
+      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
 
-export default function TopNav({ dark, onToggleDark }: Props) {
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-[#0078D4] text-white flex items-center px-4 shadow-md z-40">
-      <span className="font-bold text-lg tracking-tight mr-8 select-none">RavenBlast</span>
-      <nav className="flex gap-1 flex-1">
-        {navLinks.map(({ to, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              `min-h-[44px] px-4 flex items-center rounded text-sm font-medium transition-colors ${
-                isActive ? 'bg-white/25' : 'hover:bg-white/15'
-              }`
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
-      </nav>
-      <button
-        onClick={onToggleDark}
-        className="min-h-[44px] w-11 flex items-center justify-center rounded hover:bg-white/15 transition-colors text-lg"
-        aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-        title={dark ? 'Light mode' : 'Dark mode'}
-      >
-        {dark ? '☀' : '☽'}
-      </button>
-    </header>
+    <nav className="fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 gap-6 z-50">
+      <span className="font-bold text-lg text-blue-600 mr-2">RavenBlast</span>
+
+      <Link to="/" className={`h-14 flex items-center px-2 text-sm ${active('/')}`}>Compose</Link>
+      <Link to="/templates" className={`h-14 flex items-center px-2 text-sm ${active('/templates')}`}>Templates</Link>
+      <Link to="/history" className={`h-14 flex items-center px-2 text-sm ${active('/history')}`}>History</Link>
+      <Link to="/settings" className={`h-14 flex items-center px-2 text-sm ${active('/settings')}`}>Settings</Link>
+
+      <div className="ml-auto flex items-center gap-3">
+        <button onClick={onToggleAI}
+          className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${aiOpen ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+          🤖 AI
+        </button>
+        <button onClick={onToggleDark} className="text-xl w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle dark mode">
+          {dark ? '☀️' : '🌙'}
+        </button>
+      </div>
+    </nav>
   )
 }

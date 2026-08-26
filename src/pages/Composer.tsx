@@ -2,19 +2,22 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ipc } from '../lib/ipc'
 import { useBlastStore } from '../store/blastStore'
-import type { Attachment, BlastConfig } from '../types'
+import type { Attachment, BlastConfig, Template } from '../types'
 import SmtpSelector from '../components/SmtpSelector'
 import RecipientChipInput from '../components/RecipientChipInput'
 import BodyEditor from '../components/BodyEditor'
 import TemplatePicker from '../components/TemplatePicker'
 import AttachmentRow from '../components/AttachmentRow'
-import ContactDropZone from '../components/ContactDropZone'
-import MsgDropZone from '../components/MsgDropZone'
 import DelaySlider from '../components/DelaySlider'
 import ProgressPanel from '../components/ProgressPanel'
 
-export default function Composer() {
-  const { contacts, setProgress, setSummary } = useBlastStore()
+interface Props {
+  aiTemplate?: { subject: string; body: string } | null
+  onAiTemplateApplied?: () => void
+}
+
+export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
+  const { contacts, setContacts, setProgress, setSummary } = useBlastStore()
   const navigate = useNavigate()
 
   const [smtpProfileId, setSmtpProfileId] = useState('')
@@ -27,6 +30,20 @@ export default function Composer() {
   const [delayMin, setDelayMin] = useState(2)
   const [delayMax, setDelayMax] = useState(5)
   const [sending, setSending] = useState(false)
+  const [recipientDragOver, setRecipientDragOver] = useState(false)
+  const [savedTemplates, setSavedTemplates] = useState<Template[]>([])
+
+  useEffect(() => {
+    ipc.templatesList().then(setSavedTemplates)
+  }, [])
+
+  useEffect(() => {
+    if (aiTemplate) {
+      setSubject(aiTemplate.subject || subject)
+      setBodyHtml(aiTemplate.body)
+      onAiTemplateApplied?.()
+    }
+  }, [aiTemplate])
 
   useEffect(() => {
     const offProgress = ipc.onBlastProgress(p => setProgress(p))
@@ -38,6 +55,19 @@ export default function Composer() {
     })
     return () => { offProgress(); offComplete() }
   }, [navigate, setProgress, setSummary])
+
+  async function handleRecipientDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setRecipientDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (!file || !file.name.endsWith('.xlsx')) return
+    try {
+      const parsed = await ipc.contactsParseExcel((file as unknown as { path: string }).path)
+      setContacts(parsed as unknown as import('../types').Contact[])
+    } catch {
+      alert('Failed to parse Excel file. Make sure it has Email, Name, Company columns.')
+    }
+  }
 
   const handleSend = useCallback(async () => {
     if (!smtpProfileId || contacts.length === 0) return
@@ -68,6 +98,8 @@ export default function Composer() {
 
   const canSend = Boolean(smtpProfileId && contacts.length > 0 && subject && bodyHtml)
 
+  void savedTemplates
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
       {sending && (
@@ -90,13 +122,20 @@ export default function Composer() {
           />
         </div>
 
-        <div>
-          <div className="block text-sm font-medium mb-1">To</div>
-          <div className="min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-50 dark:bg-gray-700 text-sm text-gray-500 dark:text-gray-400 flex items-center">
-            {contacts.length > 0
-              ? `${contacts.length} recipients loaded from spreadsheet`
-              : 'Drop a spreadsheet below to load recipients'}
-          </div>
+        {/* Recipients - drag-drop Excel or type emails */}
+        <div
+          onDragOver={e => { e.preventDefault(); setRecipientDragOver(true) }}
+          onDragLeave={() => setRecipientDragOver(false)}
+          onDrop={handleRecipientDrop}
+          className={`border rounded-lg p-3 transition-colors ${recipientDragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Recipients — type emails or drop Excel (.xlsx) file</label>
+          <RecipientChipInput label="" values={contacts.map(c => c.email)} onChange={() => {}} />
+          {contacts.length > 0 && (
+            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-between">
+              <span>✅ {contacts.length} recipients loaded</span>
+              <button onClick={() => setContacts([])} className="text-red-500 hover:text-red-700 text-xs">Clear all</button>
+            </div>
+          )}
         </div>
 
         <RecipientChipInput label="CC" values={cc} onChange={setCc} />
@@ -117,16 +156,6 @@ export default function Composer() {
         <BodyEditor value={bodyHtml} onChange={setBodyHtml} />
 
         <AttachmentRow attachments={attachments} onChange={setAttachments} />
-
-        <div className="grid grid-cols-2 gap-4">
-          <ContactDropZone />
-          <MsgDropZone
-            onLoad={({ subject: s, bodyHtml: b }) => {
-              setSubject(s)
-              setBodyHtml(b)
-            }}
-          />
-        </div>
 
         <DelaySlider min={delayMin} max={delayMax} onMinChange={setDelayMin} onMaxChange={setDelayMax} />
 
