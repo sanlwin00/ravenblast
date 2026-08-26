@@ -7,13 +7,14 @@ import { registerMsgHandlers } from './handlers/msgParser'
 import { registerHistoryHandlers } from './handlers/history'
 import { registerTemplateHandlers } from './handlers/templates'
 import { registerAiChatHandlers } from './handlers/aiChat'
+import { registerDraftHandlers } from './handlers/draft'
 
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
     minWidth: 900,
     minHeight: 700,
     webPreferences: {
@@ -29,6 +30,7 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
+  mainWindow.maximize()
   mainWindow.on('closed', () => { mainWindow = null })
 }
 
@@ -42,6 +44,7 @@ app.whenReady().then(() => {
   registerHistoryHandlers()
   registerTemplateHandlers()
   registerAiChatHandlers()
+  registerDraftHandlers()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

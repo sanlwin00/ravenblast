@@ -33,6 +33,10 @@ contextBridge.exposeInMainWorld('api', {
   aiSetKey: (key: string) => ipcRenderer.invoke('ai:set-key', key),
   aiChat: (messages: unknown) => ipcRenderer.invoke('ai:chat', messages),
 
+  // Draft persistence
+  draftGet: () => ipcRenderer.invoke('draft:get'),
+  draftSave: (data: unknown) => ipcRenderer.invoke('draft:save', data),
+
   // Push: main → renderer
   onBlastProgress: (cb: (progress: unknown) => void) => {
     const handler = (_: IpcRendererEvent, data: unknown) => cb(data)

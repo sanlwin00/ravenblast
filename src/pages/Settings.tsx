@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ipc } from '../lib/ipc'
 import type { SmtpProfile } from '../types'
+import DelaySlider from '../components/DelaySlider'
 
 type ProfileDraft = Omit<SmtpProfile, 'id'> & { id?: string }
 
@@ -20,11 +21,18 @@ export default function Settings() {
   const [editing, setEditing] = useState<ProfileDraft | null>(null)
   const [showPw, setShowPw] = useState(false)
   const [testResult, setTestResult] = useState<{ id: string; ok: boolean; error?: string } | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [openaiKey, setOpenaiKey] = useState('')
   const [openaiStatus, setOpenaiStatus] = useState('')
+  const [delayMin, setDelayMin] = useState(2)
+  const [delayMax, setDelayMax] = useState(5)
 
   useEffect(() => {
     ipc.aiGetKey().then(k => { if (k) setOpenaiKey(k) })
+    ipc.draftGet().then(d => {
+      setDelayMin(d.delayMin ?? 2)
+      setDelayMax(d.delayMax ?? 5)
+    })
   }, [])
 
   async function saveOpenaiKey() {
@@ -49,8 +57,8 @@ export default function Settings() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Delete this SMTP profile?')) return
     await ipc.smtpDelete(id)
+    setDeleteConfirmId(null)
     loadProfiles()
   }
 
@@ -62,6 +70,16 @@ export default function Settings() {
 
   function field<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setEditing(prev => prev ? { ...prev, [key]: value } : prev)
+  }
+
+  function handleDelayMinChange(v: number) {
+    setDelayMin(v)
+    ipc.draftSave({ delayMin: v })
+  }
+
+  function handleDelayMaxChange(v: number) {
+    setDelayMax(v)
+    ipc.draftSave({ delayMax: v })
   }
 
   return (
@@ -79,7 +97,7 @@ export default function Settings() {
       <div className="space-y-3">
         {profiles.map(p => (
           <div key={p.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex items-start justify-between gap-4">
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="font-medium">{p.name}</div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{p.host}:{p.port} · {p.encryption.toUpperCase()} · {p.username}</div>
               {p.fromName && <div className="text-sm text-gray-500 dark:text-gray-400">From: {p.fromName}</div>}
@@ -88,11 +106,28 @@ export default function Settings() {
                   {testResult.ok ? '✓ Connection OK' : `✗ ${testResult.error}`}
                 </div>
               )}
+              {deleteConfirmId === p.id && (
+                <div className="mt-2 flex items-center gap-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded px-3 py-2">
+                  <span className="text-red-800 dark:text-red-200 flex-1">Delete this account?</span>
+                  <button
+                    onClick={() => remove(p.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-semibold"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmId(null)}
+                    className="border border-gray-300 dark:border-gray-600 px-3 py-1 rounded text-xs hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => test(p.id)} className="min-h-[44px] px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">Test</button>
               <button onClick={() => { setEditing(p); setShowPw(false) }} className="min-h-[44px] px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">Edit</button>
-              <button onClick={() => remove(p.id)} className="min-h-[44px] px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
+              <button onClick={() => setDeleteConfirmId(p.id)} className="min-h-[44px] px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
             </div>
           </div>
         ))}
@@ -102,6 +137,15 @@ export default function Settings() {
           </div>
         )}
       </div>
+
+      {/* Send Delay */}
+      <section className="mt-10">
+        <h2 className="text-xl font-bold mb-4">Send Delay</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Random delay between each email to avoid spam filters. Settings are saved automatically.</p>
+          <DelaySlider min={delayMin} max={delayMax} onMinChange={handleDelayMinChange} onMaxChange={handleDelayMaxChange} />
+        </div>
+      </section>
 
       {/* OpenAI API Key */}
       <section className="mt-10">

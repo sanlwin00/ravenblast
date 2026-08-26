@@ -28,6 +28,9 @@ declare global {
       templatesSave(t: Partial<Template>): Promise<{ ok: boolean }>
       templatesDelete(id: string): Promise<{ ok: boolean }>
 
+      draftGet(): Promise<{ smtpProfileId: string; cc: string[]; bcc: string[]; subject: string; bodyHtml: string; delayMin: number; delayMax: number }>
+      draftSave(data: Partial<{ smtpProfileId: string; cc: string[]; bcc: string[]; subject: string; bodyHtml: string; delayMin: number; delayMax: number }>): Promise<{ ok: boolean }>
+
       aiGetKey(): Promise<string>
       aiSetKey(key: string): Promise<{ ok: boolean }>
       aiChat(messages: Array<{ role: string; content: string }>): Promise<{ content?: string; error?: string }>

@@ -42,7 +42,7 @@ export default function TemplatePicker({ onSelect, hasContent }: Props) {
       <select
         value={selected}
         onChange={handleChange}
-        className="min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800 w-56"
+        className="min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800 w-full"
       >
         <option value="">Choose template...</option>
         {savedTemplates.map(t => (

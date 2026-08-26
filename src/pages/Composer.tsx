@@ -8,7 +8,6 @@ import RecipientChipInput from '../components/RecipientChipInput'
 import BodyEditor from '../components/BodyEditor'
 import TemplatePicker from '../components/TemplatePicker'
 import AttachmentRow from '../components/AttachmentRow'
-import DelaySlider from '../components/DelaySlider'
 import ProgressPanel from '../components/ProgressPanel'
 
 interface Props {
@@ -31,7 +30,28 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   const [delayMax, setDelayMax] = useState(5)
   const [sending, setSending] = useState(false)
   const [recipientDragOver, setRecipientDragOver] = useState(false)
+  const [draftLoaded, setDraftLoaded] = useState(false)
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([])
+
+  // Load persisted draft on mount
+  useEffect(() => {
+    ipc.draftGet().then(draft => {
+      if (draft.smtpProfileId) setSmtpProfileId(draft.smtpProfileId)
+      if (draft.cc?.length) setCc(draft.cc)
+      if (draft.bcc?.length) setBcc(draft.bcc)
+      if (draft.subject) setSubject(draft.subject)
+      if (draft.bodyHtml) setBodyHtml(draft.bodyHtml)
+      setDelayMin(draft.delayMin ?? 2)
+      setDelayMax(draft.delayMax ?? 5)
+      setDraftLoaded(true)
+    })
+  }, [])
+
+  // Save draft whenever any field changes (skip until draft loaded to avoid overwriting with defaults)
+  useEffect(() => {
+    if (!draftLoaded) return
+    ipc.draftSave({ smtpProfileId, cc, bcc, subject, bodyHtml })
+  }, [smtpProfileId, cc, bcc, subject, bodyHtml, draftLoaded])
 
   useEffect(() => {
     ipc.templatesList().then(setSavedTemplates)
@@ -105,7 +125,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   void savedTemplates
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+    <div className="w-[90%] mx-auto px-4 py-6 space-y-4">
       {sending && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
           <ProgressPanel onDone={() => setSending(false)} />
@@ -152,8 +172,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           hasContent={bodyHtml.length > 0}
         />
         <BodyEditor value={bodyHtml} onChange={setBodyHtml} />
-
-        <DelaySlider min={delayMin} max={delayMax} onMinChange={setDelayMin} onMaxChange={setDelayMax} />
 
         <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
           <button
