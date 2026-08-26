@@ -32,6 +32,7 @@ export default function App() {
   function handleApplyTemplate(subject: string, body: string) {
     setAiTemplate({ subject, body })
     setAiOpen(false)
+    navigate('/')
   }
 
   function handleRemoveRecipient(_email: string) {
