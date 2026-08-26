@@ -150,8 +150,12 @@ export default function Templates() {
             <BodyEditor value={editBody} onChange={setEditBody} />
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={save} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded text-base">Save Template</button>
-            <button onClick={() => setEditing(null)} className="border border-gray-300 dark:border-gray-600 px-6 py-3 rounded text-base hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+            <button onClick={save} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg text-base transition-colors shadow-sm">
+              💾 Save Template
+            </button>
+            <button onClick={() => setEditing(null)} className="border border-gray-300 dark:border-gray-600 px-6 py-3 rounded-lg text-base hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              Cancel
+            </button>
           </div>
           {status && <p className={`font-medium ${statusError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{status}</p>}
         </div>
@@ -163,7 +167,9 @@ export default function Templates() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Email Templates</h1>
-        <button onClick={startNew} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded text-base">+ New Template</button>
+        <button onClick={startNew} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-base transition-colors shadow-sm">
+          ✉️ New Template
+        </button>
       </div>
 
       {status && <p className={`mb-4 font-medium ${statusError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{status}</p>}
@@ -208,22 +214,49 @@ export default function Templates() {
       ) : (
         <div className="space-y-3">
           {templates.map(t => (
-            <div key={t.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between">
-              <div>
-                <div className="font-semibold text-base">{t.name}</div>
-                {t.subject && <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Subject: {t.subject}</div>}
-                <div className="text-xs text-gray-400 mt-0.5">{new Date(t.createdAt).toLocaleDateString()}</div>
+            <div key={t.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400 text-lg">
+                  📧
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-base truncate">{t.name}</div>
+                  {t.subject && <div className="text-sm text-gray-500 dark:text-gray-400 truncate">Subject: {t.subject}</div>}
+                  <div className="text-xs text-gray-400 mt-0.5">{new Date(t.createdAt).toLocaleDateString()}</div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => startEdit(t)} className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Edit</button>
-                <button onClick={() => startClone(t)} className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Clone</button>
+              <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={() => startEdit(t)}
+                  title="Edit"
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  onClick={() => startClone(t)}
+                  title="Clone"
+                  className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  📋 Clone
+                </button>
                 {pendingDelete === t.id ? (
                   <>
-                    <button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">Confirm Delete</button>
-                    <button onClick={() => setPendingDelete(null)} className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button onClick={confirmDelete} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                      ✓ Confirm
+                    </button>
+                    <button onClick={() => setPendingDelete(null)} className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                      Cancel
+                    </button>
                   </>
                 ) : (
-                  <button onClick={() => del(t.id)} className="border border-red-300 text-red-600 px-4 py-2 rounded text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
+                  <button
+                    onClick={() => del(t.id)}
+                    title="Delete"
+                    className="flex items-center gap-1.5 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    🗑️ Delete
+                  </button>
                 )}
               </div>
             </div>
