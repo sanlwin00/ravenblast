@@ -2,6 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { ipc } from '../lib/ipc'
 import type { ChatMessage } from '../types'
 
+interface ComposerCtx {
+  subject: string
+  bodyHtml: string
+  recipientCount: number
+}
+
 interface Props {
   open: boolean
   width: number
@@ -9,6 +15,7 @@ interface Props {
   onClose: () => void
   onApplyTemplate: (subject: string, body: string) => void
   onRemoveRecipient: (email: string) => void
+  composerCtx: ComposerCtx
 }
 
 function markdownToHtml(md: string): string {
@@ -27,11 +34,35 @@ function markdownToHtml(md: string): string {
     .replace(/\n/g, '<br/>')
 }
 
-const SYSTEM_PROMPT = `You are RavenBlast AI, an assistant built into a bulk email sender desktop app.
+async function buildSystemPrompt(composerCtx: ComposerCtx): Promise<string> {
+  let templateSection = ''
+  try {
+    const templates = await ipc.templatesList()
+    if (templates.length > 0) {
+      templateSection = `\n\nSAVED TEMPLATES (${templates.length} total):\n` +
+        templates.map(t => `- "${t.name}"${t.subject ? ` (subject: ${t.subject})` : ''}`).join('\n')
+    } else {
+      templateSection = '\n\nSAVED TEMPLATES: none yet.'
+    }
+  } catch { /* ignore */ }
+
+  let composerSection = ''
+  if (composerCtx.subject || composerCtx.bodyHtml) {
+    const bodyPreview = composerCtx.bodyHtml
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 400)
+    composerSection = `\n\nCURRENT COMPOSER STATE:\n- Subject: ${composerCtx.subject || '(empty)'}\n- Recipients loaded: ${composerCtx.recipientCount}\n- Body preview: ${bodyPreview || '(empty)'}`
+  } else {
+    composerSection = `\n\nCURRENT COMPOSER STATE: empty (no subject or body yet). Recipients loaded: ${composerCtx.recipientCount}.`
+  }
+
+  return `You are RavenBlast AI, an assistant built into a bulk email sender desktop app.
 You help the user:
 - Write and improve email templates (marketing emails, newsletters, business emails)
 - Suggest subject lines
-- Remove or filter recipients by name/email/company
+- Edit or rewrite the current email body in the Composer
 - Answer questions about the app
 
 When you create or edit an email template, always wrap the HTML body in a code block with language "html" so the user can apply it. Example:
@@ -40,7 +71,8 @@ When you create or edit an email template, always wrap the HTML body in a code b
 <p>Your content here.</p>
 \`\`\`
 
-Keep emails professional. Support merge tags {{Name}} and {{Company}}.`
+Support merge tags {{Name}} and {{Company}}. Keep emails professional.${templateSection}${composerSection}`
+}
 
 async function saveAsNewTemplate(subject: string, html: string): Promise<string> {
   const existing = await ipc.templatesList()
@@ -55,7 +87,7 @@ async function saveAsNewTemplate(subject: string, html: string): Promise<string>
   return name
 }
 
-export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onRemoveRecipient }: Props) {
+export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onRemoveRecipient, composerCtx }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -103,7 +135,8 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-    const result = await ipc.aiChat([{ role: 'system' as const, content: SYSTEM_PROMPT }, ...newMessages])
+    const systemPrompt = await buildSystemPrompt(composerCtx)
+    const result = await ipc.aiChat([{ role: 'system' as const, content: systemPrompt }, ...newMessages])
     setLoading(false)
     if (result.error) {
       setMessages(prev => [...prev, { role: 'assistant', content: `❌ ${result.error}` }])

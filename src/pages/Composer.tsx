@@ -14,9 +14,10 @@ import ProgressPanel from '../components/ProgressPanel'
 interface Props {
   aiTemplate?: { subject: string; body: string } | null
   onAiTemplateApplied?: () => void
+  onContextChange?: (ctx: { subject: string; bodyHtml: string; recipientCount: number }) => void
 }
 
-export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
+export default function Composer({ aiTemplate, onAiTemplateApplied, onContextChange }: Props) {
   const { contacts, setContacts, setProgress, setSummary } = useBlastStore()
   const navigate = useNavigate()
 
@@ -43,6 +44,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
       onAiTemplateApplied?.()
     }
   }, [aiTemplate])
+
+  useEffect(() => {
+    onContextChange?.({ subject, bodyHtml, recipientCount: contacts.length })
+  }, [subject, bodyHtml, contacts.length])
 
   useEffect(() => {
     const offProgress = ipc.onBlastProgress(p => setProgress(p))

@@ -17,6 +17,7 @@ export default function App() {
   const [aiOpen, setAiOpen] = useState(false)
   const [aiWidth, setAiWidth] = useState(AI_DEFAULT_WIDTH)
   const [aiTemplate, setAiTemplate] = useState<{ subject: string; body: string } | null>(null)
+  const [composerCtx, setComposerCtx] = useState<{ subject: string; bodyHtml: string; recipientCount: number }>({ subject: '', bodyHtml: '', recipientCount: 0 })
 
   function toggleDark() {
     setDark(prev => {
@@ -44,7 +45,7 @@ export default function App() {
           style={{ marginRight: aiOpen ? Math.max(AI_MIN_WIDTH, aiWidth) : 0 }}
         >
           <Routes>
-            <Route path="/" element={<Composer aiTemplate={aiTemplate} onAiTemplateApplied={() => setAiTemplate(null)} />} />
+            <Route path="/" element={<Composer aiTemplate={aiTemplate} onAiTemplateApplied={() => setAiTemplate(null)} onContextChange={setComposerCtx} />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/history" element={<History />} />
@@ -58,6 +59,7 @@ export default function App() {
           onClose={() => setAiOpen(false)}
           onApplyTemplate={handleApplyTemplate}
           onRemoveRecipient={handleRemoveRecipient}
+          composerCtx={composerCtx}
         />
       </div>
     </BlastStoreProvider>
