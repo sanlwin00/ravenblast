@@ -102,15 +102,15 @@ export default function Settings() {
         <h1 className="text-2xl font-semibold">Accounts</h1>
         <button
           onClick={() => { setEditing({ ...blankProfile }); setShowPw(false) }}
-          className="min-h-[44px] px-4 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600"
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors shadow-sm"
         >
-          Add Account
+          ➕ Add Account
         </button>
       </div>
 
       <div className="space-y-3">
         {profiles.map(p => (
-          <div key={p.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex items-start justify-between gap-4">
+          <div key={p.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-start justify-between gap-4 hover:shadow-md transition-shadow">
             <div className="flex-1 min-w-0">
               <div className="font-medium">{p.name}</div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{p.host}:{p.port} · {p.encryption.toUpperCase()} · {p.username}</div>
@@ -139,9 +139,9 @@ export default function Settings() {
               )}
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <button onClick={() => test(p.id)} className="min-h-[44px] px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">Test</button>
-              <button onClick={() => { setEditing(p); setShowPw(false) }} className="min-h-[44px] px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">Edit</button>
-              <button onClick={() => setDeleteConfirmId(p.id)} className="min-h-[44px] px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20">Delete</button>
+              <button onClick={() => test(p.id)} className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🔌 Test</button>
+              <button onClick={() => { setEditing(p); setShowPw(false) }} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">✏️ Edit</button>
+              <button onClick={() => setDeleteConfirmId(p.id)} className="flex items-center gap-1.5 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🗑️ Delete</button>
             </div>
           </div>
         ))}
@@ -155,7 +155,7 @@ export default function Settings() {
       {/* Send Delay */}
       <section className="mt-10">
         <h2 className="text-xl font-bold mb-4">Send Delay</h2>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Random delay between each email to avoid spam filters. Settings are saved automatically.</p>
           <DelaySlider min={delayMin} max={delayMax} onMinChange={handleDelayMinChange} onMaxChange={handleDelayMaxChange} />
         </div>
@@ -164,7 +164,7 @@ export default function Settings() {
       {/* OpenAI API Key */}
       <section className="mt-10">
         <h2 className="text-xl font-bold mb-4">AI Assistant</h2>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Model</label>
             <select
@@ -188,7 +188,7 @@ export default function Settings() {
               placeholder="sk-..."
               className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 h-12 text-base bg-white dark:bg-gray-800 focus:outline-none focus:border-blue-500"
             />
-            <button onClick={saveOpenaiKey} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded">Save</button>
+            <button onClick={saveOpenaiKey} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm">💾 Save</button>
           </div>
           {openaiStatus && <p className="mt-2 text-green-600 dark:text-green-400 text-sm font-medium">{openaiStatus}</p>}
         </div>
@@ -196,7 +196,7 @@ export default function Settings() {
 
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-4 overflow-y-auto max-h-[90vh]">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4 overflow-y-auto max-h-[90vh]">
             <h2 className="text-xl font-semibold">{editing.id ? 'Edit' : 'Add'} Account</h2>
 
             <div>
@@ -272,16 +272,16 @@ export default function Settings() {
             )}
             <div className="flex gap-3 pt-2">
               <button onClick={() => { setEditing(null); setShowPw(false); setModalTestResult(null) }}
-                className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                Cancel
+                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                ✕ Cancel
               </button>
               <button onClick={testModalConnection} disabled={modalTesting}
-                className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40">
-                {modalTesting ? 'Testing...' : 'Test Connection'}
+                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40">
+                {modalTesting ? '⏳ Testing...' : '🔌 Test Connection'}
               </button>
               <button onClick={save}
-                className="min-h-[44px] px-6 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600 ml-auto">
-                Save
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm ml-auto">
+                💾 Save Account
               </button>
             </div>
           </div>

@@ -137,7 +137,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-5">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-5">
         {/* Recipients - drag-drop Excel or type emails */}
         <div
           onDragOver={e => { e.preventDefault(); setRecipientDragOver(true) }}
@@ -182,16 +182,16 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           <button
             onClick={() => { setTestSendOpen(true); setTestSendStatus(null) }}
             disabled={!canTestSend}
-            className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Test Send
+            🧪 Test Send
           </button>
           <button
             onClick={handleSend}
             disabled={!canSend}
-            className="min-h-[44px] px-6 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed ml-auto font-medium"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
           >
-            Send to All ({contacts.length})
+            📤 Send to All ({contacts.length})
           </button>
         </div>
 
@@ -221,16 +221,16 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => { setTestSendOpen(false); setTestSendStatus(null) }}
-                  className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
-                  Close
+                  ✕ Close
                 </button>
                 <button
                   onClick={handleTestSend}
                   disabled={testSending || !testSendEmail}
-                  className="min-h-[44px] px-6 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed ml-auto font-medium"
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
                 >
-                  {testSending ? 'Sending...' : 'Send Test'}
+                  {testSending ? '⏳ Sending...' : '🧪 Send Test'}
                 </button>
               </div>
             </div>
