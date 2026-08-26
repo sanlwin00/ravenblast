@@ -23,19 +23,12 @@ function extractUrls(text: string): string[] {
 
 async function fetchPageText(url: string): Promise<string> {
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RavenBlast/1.0; +https://ravenblast.app)' },
-      signal: AbortSignal.timeout(8000)
+    const res = await fetch(`https://r.jina.ai/${url}`, {
+      headers: { 'Accept': 'text/plain', 'X-Return-Format': 'markdown' },
+      signal: AbortSignal.timeout(15000)
     })
-    const html = await res.text()
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 5000)
-    return text
+    const text = await res.text()
+    return text.trim().slice(0, 6000)
   } catch {
     return ''
   }
