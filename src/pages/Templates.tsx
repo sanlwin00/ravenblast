@@ -65,16 +65,17 @@ export default function Templates() {
       setStatus('Please drop an Outlook .msg file')
       return
     }
-    try {
-      const result = await ipc.msgParse((file as unknown as { path: string }).path)
-      const name = prompt('Template name:', file.name.replace('.msg', '')) || file.name.replace('.msg', '')
-      await ipc.templatesSave({ name, subject: result.subject || '', bodyHtml: result.bodyHtml || '' })
-      setStatus('Template created from .msg file')
-      load()
-      setTimeout(() => setStatus(''), 3000)
-    } catch {
-      setStatus('Failed to parse .msg file')
+    const filePath = (file as unknown as { path: string }).path
+    const result = await ipc.msgParse(filePath)
+    if (result.error) {
+      setStatus(`Error: ${result.error}`)
+      return
     }
+    const name = prompt('Template name:', file.name.replace('.msg', '')) || file.name.replace('.msg', '')
+    await ipc.templatesSave({ name, subject: result.subject || '', bodyHtml: result.bodyHtml || '' })
+    setStatus('Template created from .msg file')
+    load()
+    setTimeout(() => setStatus(''), 3000)
   }
 
   if (editing !== null) {

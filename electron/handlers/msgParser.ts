@@ -1,21 +1,36 @@
 import { ipcMain } from 'electron'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MsgReader = require('@kenjiuno/msgreader').default ?? require('@kenjiuno/msgreader')
 
 export function registerMsgHandlers(): void {
   ipcMain.handle('msg:parse', (_event, filePath: string) => {
-    // Dynamic import to avoid top-level CJS/ESM issues with msgreader
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const MsgReader = require('@kenjiuno/msgreader').default ?? require('@kenjiuno/msgreader')
-    const buf = readFileSync(filePath)
-    const reader = new MsgReader(buf)
-    const fileData = reader.getFileData()
+    if (!filePath) {
+      return { error: 'No file path received. Make sure you are dropping the file from Windows Explorer, not from a browser or email client.' }
+    }
+    if (!existsSync(filePath)) {
+      return { error: `File not found at path: ${filePath}` }
+    }
 
-    return {
-      subject: fileData.subject || '',
-      bodyHtml: fileData.bodyHTML || (fileData.body ? `<pre style="white-space:pre-wrap">${fileData.body}</pre>` : ''),
-      attachments: (fileData.attachments || []).map((a: { fileName?: string; dataId?: number }) => ({
-        name: a.fileName || 'attachment'
-      }))
+    try {
+      const buf = readFileSync(filePath)
+      const reader = new MsgReader(buf)
+      const fileData = reader.getFileData()
+
+      const bodyHtml: string =
+        fileData.bodyHTML ||
+        fileData.bodyHtml ||
+        (fileData.body ? `<pre style="white-space:pre-wrap">${fileData.body}</pre>` : '')
+
+      return {
+        subject: fileData.subject || '',
+        bodyHtml,
+        attachments: (fileData.attachments || []).map((a: { fileName?: string }) => ({
+          name: a.fileName || 'attachment'
+        }))
+      }
+    } catch (err) {
+      return { error: (err as Error).message }
     }
   })
 }

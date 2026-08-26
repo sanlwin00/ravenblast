@@ -10,9 +10,10 @@ declare global {
 
       contactsParseExcel(filePath: string): Promise<Record<string, string>[]>
       msgParse(filePath: string): Promise<{
-        subject: string
-        bodyHtml: string
-        attachments: Array<{ name: string }>
+        subject?: string
+        bodyHtml?: string
+        attachments?: Array<{ name: string }>
+        error?: string
       }>
 
       blastStart(config: BlastConfig): Promise<{ ok: boolean; error?: string }>
