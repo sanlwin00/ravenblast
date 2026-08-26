@@ -147,7 +147,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
 
         <AttachmentRow attachments={attachments} onChange={setAttachments} />
 
-        <TemplatePicker onSelect={setBodyHtml} hasContent={bodyHtml.length > 0} />
+        <TemplatePicker
+          onSelect={(html, subject) => { setBodyHtml(html); if (subject) setSubject(subject) }}
+          hasContent={bodyHtml.length > 0}
+        />
         <BodyEditor value={bodyHtml} onChange={setBodyHtml} />
 
         <DelaySlider min={delayMin} max={delayMax} onMinChange={setDelayMin} onMaxChange={setDelayMax} />
