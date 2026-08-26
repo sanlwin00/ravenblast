@@ -98,7 +98,6 @@ export default function Templates() {
               placeholder="e.g. Hello {{Name}}, here's your update" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email Body</label>
             <BodyEditor value={editBody} onChange={setEditBody} />
           </div>
           <div className="flex gap-3 pt-2">

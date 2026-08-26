@@ -67,12 +67,12 @@ export default function Settings() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">SMTP Profiles</h1>
+        <h1 className="text-2xl font-semibold">Accounts</h1>
         <button
           onClick={() => { setEditing({ ...blankProfile }); setShowPw(false) }}
           className="min-h-[44px] px-4 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600"
         >
-          Add Profile
+          Add Account
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export default function Settings() {
         ))}
         {profiles.length === 0 && (
           <div className="text-center text-gray-500 dark:text-gray-400 py-16">
-            No SMTP profiles yet. Add one to get started.
+            No accounts yet. Add one to get started.
           </div>
         )}
       </div>
@@ -126,7 +126,7 @@ export default function Settings() {
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6 space-y-4 overflow-y-auto max-h-[90vh]">
-            <h2 className="text-xl font-semibold">{editing.id ? 'Edit' : 'Add'} SMTP Profile</h2>
+            <h2 className="text-xl font-semibold">{editing.id ? 'Edit' : 'Add'} Account</h2>
 
             <div>
               <label className="block text-sm font-medium mb-1">Profile Name</label>

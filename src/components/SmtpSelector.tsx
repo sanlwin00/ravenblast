@@ -20,24 +20,17 @@ export default function SmtpSelector({ value, onChange }: Props) {
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">SMTP Profile</label>
-      <div className="flex gap-2 items-end">
-        <select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="flex-1 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800"
-        >
-          <option value="">Select SMTP profile...</option>
-          {profiles.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-        {profiles.length === 0 && (
-          <a href="#/settings" className="text-sm text-[#0078D4] hover:underline whitespace-nowrap pb-2">
-            Add profile
-          </a>
-        )}
-      </div>
+      <label className="block text-sm font-medium mb-1">Send From</label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800"
+      >
+        <option value="">Select email account...</option>
+        {profiles.map(p => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
+      </select>
     </div>
   )
 }
