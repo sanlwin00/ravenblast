@@ -182,7 +182,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           <button
             onClick={() => { setTestSendOpen(true); setTestSendStatus(null) }}
             disabled={!canTestSend}
-            className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             🧪 Test Send
           </button>
@@ -221,7 +221,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={() => { setTestSendOpen(false); setTestSendStatus(null) }}
-                  className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   ✕ Close
                 </button>

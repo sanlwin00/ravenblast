@@ -139,9 +139,9 @@ export default function Settings() {
               )}
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <button onClick={() => test(p.id)} className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🔌 Test</button>
+              <button onClick={() => test(p.id)} className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🔌 Test</button>
               <button onClick={() => { setEditing(p); setShowPw(false) }} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">✏️ Edit</button>
-              <button onClick={() => setDeleteConfirmId(p.id)} className="flex items-center gap-1.5 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🗑️ Delete</button>
+              <button onClick={() => setDeleteConfirmId(p.id)} className="flex items-center gap-1.5 border border-red-200 dark:border-red-800 bg-red-50/60 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🗑️ Delete</button>
             </div>
           </div>
         ))}
@@ -272,11 +272,11 @@ export default function Settings() {
             )}
             <div className="flex gap-3 pt-2">
               <button onClick={() => { setEditing(null); setShowPw(false); setModalTestResult(null) }}
-                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
                 ✕ Cancel
               </button>
               <button onClick={testModalConnection} disabled={modalTesting}
-                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40">
+                className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40">
                 {modalTesting ? '⏳ Testing...' : '🔌 Test Connection'}
               </button>
               <button onClick={save}
