@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ipc } from '../lib/ipc'
 import type { Template } from '../types'
 import BodyEditor from '../components/BodyEditor'
@@ -22,8 +23,18 @@ export default function Templates() {
   const [importName, setImportName] = useState('')
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const dropRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   useEffect(() => { load() }, [])
+
+  // Open template in edit mode if navigated here from AI save
+  useEffect(() => {
+    const t = (location.state as { editTemplate?: Template } | null)?.editTemplate
+    if (t) {
+      startEdit(t)
+      window.history.replaceState({}, '')
+    }
+  }, [])
 
   async function load() {
     const list = await ipc.templatesList()

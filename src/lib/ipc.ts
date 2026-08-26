@@ -27,7 +27,7 @@ declare global {
       historyGet(sessionId: string): Promise<BlastSummary | null>
 
       templatesList(): Promise<Template[]>
-      templatesSave(t: Partial<Template>): Promise<{ ok: boolean }>
+      templatesSave(t: Partial<Template>): Promise<{ ok: boolean; template: Template }>
       templatesDelete(id: string): Promise<{ ok: boolean }>
 
       draftGet(): Promise<{ smtpProfileId: string; cc: string[]; bcc: string[]; subject: string; bodyHtml: string; delayMin: number; delayMax: number }>

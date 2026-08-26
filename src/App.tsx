@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
+import type { Template } from './types'
 import TopNav from './components/TopNav'
 import Composer from './pages/Composer'
 import Settings from './pages/Settings'
@@ -18,6 +19,7 @@ export default function App() {
   const [aiWidth, setAiWidth] = useState(AI_DEFAULT_WIDTH)
   const [aiTemplate, setAiTemplate] = useState<{ subject: string; body: string } | null>(null)
   const [composerCtx, setComposerCtx] = useState<{ subject: string; bodyHtml: string; recipientCount: number }>({ subject: '', bodyHtml: '', recipientCount: 0 })
+  const navigate = useNavigate()
 
   function toggleDark() {
     setDark(prev => {
@@ -34,6 +36,11 @@ export default function App() {
 
   function handleRemoveRecipient(_email: string) {
     // TODO: wire up to Composer store when needed
+  }
+
+  function handleSaveAsTemplate(template: Template) {
+    setAiOpen(false)
+    navigate('/templates', { state: { editTemplate: template } })
   }
 
   return (
@@ -58,6 +65,7 @@ export default function App() {
           onWidthChange={setAiWidth}
           onClose={() => setAiOpen(false)}
           onApplyTemplate={handleApplyTemplate}
+          onSaveAsTemplate={handleSaveAsTemplate}
           onRemoveRecipient={handleRemoveRecipient}
           composerCtx={composerCtx}
         />

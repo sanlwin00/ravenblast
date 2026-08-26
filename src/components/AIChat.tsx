@@ -14,6 +14,7 @@ interface Props {
   onWidthChange: (w: number) => void
   onClose: () => void
   onApplyTemplate: (subject: string, body: string) => void
+  onSaveAsTemplate: (template: import('../types').Template) => void
   onRemoveRecipient: (email: string) => void
   composerCtx: ComposerCtx
 }
@@ -71,7 +72,7 @@ When you create or edit an email template, always wrap the HTML body in a code b
 Support merge tags {{Name}} and {{Company}}. Keep emails professional.${templateSection}${composerSection}`
 }
 
-async function saveAsNewTemplate(subject: string, html: string): Promise<string> {
+async function saveAsNewTemplate(subject: string, html: string): Promise<import('../types').Template> {
   const existing = await ipc.templatesList()
   const existingNames = new Set(existing.map(t => t.name))
   const base = subject.trim() || 'AI Template'
@@ -80,11 +81,11 @@ async function saveAsNewTemplate(subject: string, html: string): Promise<string>
   while (existingNames.has(name)) {
     name = `${base} ${n++}`
   }
-  await ipc.templatesSave({ name, subject, bodyHtml: html })
-  return name
+  const result = await ipc.templatesSave({ name, subject, bodyHtml: html })
+  return result.template
 }
 
-export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onRemoveRecipient, composerCtx }: Props) {
+export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onSaveAsTemplate, onRemoveRecipient, composerCtx }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -155,9 +156,12 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
   async function handleSaveAsTemplate(idx: number, subject: string, html: string) {
     setSaveStatus(s => ({ ...s, [idx]: 'Saving...' }))
     try {
-      const name = await saveAsNewTemplate(subject, html)
-      setSaveStatus(s => ({ ...s, [idx]: `Saved as "${name}"` }))
-      setTimeout(() => setSaveStatus(s => { const n = { ...s }; delete n[idx]; return n }), 3000)
+      const template = await saveAsNewTemplate(subject, html)
+      setSaveStatus(s => ({ ...s, [idx]: `Saved as "${template.name}"` }))
+      setTimeout(() => {
+        setSaveStatus(s => { const n = { ...s }; delete n[idx]; return n })
+        onSaveAsTemplate(template)
+      }, 800)
     } catch {
       setSaveStatus(s => ({ ...s, [idx]: 'Save failed' }))
     }

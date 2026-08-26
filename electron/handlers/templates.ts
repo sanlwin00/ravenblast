@@ -24,15 +24,22 @@ export function registerTemplateHandlers(): void {
 
   ipcMain.handle('templates:save', (_event, template: Partial<Template>) => {
     const templates = store.get('templates')
+    let saved: Template
     if (template.id) {
       const idx = templates.findIndex(t => t.id === template.id)
-      if (idx >= 0) templates[idx] = { ...templates[idx], ...template }
-      else templates.push({ ...template, id: template.id, createdAt: new Date().toISOString() } as Template)
+      if (idx >= 0) {
+        templates[idx] = { ...templates[idx], ...template }
+        saved = templates[idx]
+      } else {
+        saved = { ...template, id: template.id, createdAt: new Date().toISOString() } as Template
+        templates.push(saved)
+      }
     } else {
-      templates.push({ ...template, id: randomUUID(), createdAt: new Date().toISOString() } as Template)
+      saved = { ...template, id: randomUUID(), createdAt: new Date().toISOString() } as Template
+      templates.push(saved)
     }
     store.set('templates', templates)
-    return { ok: true }
+    return { ok: true, template: saved }
   })
 
   ipcMain.handle('templates:delete', (_event, id: string) => {
