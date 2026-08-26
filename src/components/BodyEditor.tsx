@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -10,8 +10,13 @@ interface Props {
   onChange: (value: string) => void
 }
 
+type Mode = 'rich' | 'raw' | 'preview'
+
 export default function BodyEditor({ value, onChange }: Props) {
-  const [rawMode, setRawMode] = useState(false)
+  const [mode, setMode] = useState<Mode>('rich')
+  const [linkInput, setLinkInput] = useState('')
+  const [showLinkBox, setShowLinkBox] = useState(false)
+  const linkRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -22,26 +27,46 @@ export default function BodyEditor({ value, onChange }: Props) {
     ],
     content: value,
     onUpdate: ({ editor: e }) => {
-      if (!rawMode) onChange(e.getHTML())
+      if (mode === 'rich') onChange(e.getHTML())
     }
   })
 
-  // Sync external value into editor when not in raw mode
   useEffect(() => {
-    if (!editor || rawMode) return
+    if (!editor || mode !== 'rich') return
     const current = editor.getHTML()
     if (current !== value) {
       editor.commands.setContent(value, false)
     }
-  }, [value, rawMode, editor])
+  }, [value, mode, editor])
 
-  function toggleRaw() {
-    if (!rawMode && editor) {
-      // entering raw — value already up to date
-    } else if (rawMode && editor) {
+  useEffect(() => {
+    if (showLinkBox) linkRef.current?.focus()
+  }, [showLinkBox])
+
+  function switchMode(next: Mode) {
+    if (next === 'rich' && editor) {
       editor.commands.setContent(value, false)
     }
-    setRawMode(m => !m)
+    setMode(next)
+    setShowLinkBox(false)
+  }
+
+  function applyLink() {
+    const url = linkInput.trim()
+    if (!url || !editor) { setShowLinkBox(false); return }
+    editor.chain().focus().setLink({ href: url }).run()
+    setLinkInput('')
+    setShowLinkBox(false)
+  }
+
+  function toggleLink() {
+    if (!editor) return
+    if (editor.isActive('link')) {
+      editor.chain().focus().unsetLink().run()
+      setShowLinkBox(false)
+    } else {
+      setShowLinkBox(v => !v)
+    }
   }
 
   function toolbarBtn(active: boolean, onClick: () => void, label: string) {
@@ -60,40 +85,53 @@ export default function BodyEditor({ value, onChange }: Props) {
     )
   }
 
+  const previewHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:16px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6}</style></head><body>${value}</body></html>`
+
   return (
     <div>
-      <label className="block text-sm font-medium mb-2">Body</label>
-      <div className="flex gap-1.5 mb-2 flex-wrap">
-        {editor && (
+      {/* Toolbar */}
+      <div className="flex gap-1.5 mb-2 flex-wrap items-center">
+        {mode === 'rich' && editor && (
           <>
             {toolbarBtn(editor.isActive('bold'), () => editor.chain().focus().toggleBold().run(), 'B')}
             {toolbarBtn(editor.isActive('italic'), () => editor.chain().focus().toggleItalic().run(), 'I')}
             {toolbarBtn(editor.isActive('underline'), () => editor.chain().focus().toggleUnderline().run(), 'U')}
-            {toolbarBtn(editor.isActive('link'), () => {
-              if (editor.isActive('link')) {
-                editor.chain().focus().unsetLink().run()
-              } else {
-                const url = prompt('Enter URL:')
-                if (url) editor.chain().focus().setLink({ href: url }).run()
-              }
-            }, 'Link')}
+            {toolbarBtn(editor.isActive('link'), toggleLink, 'Link')}
             {toolbarBtn(editor.isActive('bulletList'), () => editor.chain().focus().toggleBulletList().run(), '• List')}
           </>
         )}
-        <button
-          type="button"
-          onClick={toggleRaw}
-          className={`px-3 py-1 border rounded text-sm ml-auto transition-colors ${
-            rawMode
-              ? 'bg-gray-200 dark:bg-gray-600 border-gray-400'
-              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }`}
-        >
-          HTML
-        </button>
+        <div className="ml-auto flex gap-1.5">
+          {toolbarBtn(mode === 'rich', () => switchMode('rich'), 'Edit')}
+          {toolbarBtn(mode === 'raw', () => switchMode('raw'), 'HTML')}
+          {toolbarBtn(mode === 'preview', () => switchMode('preview'), 'Preview')}
+        </div>
       </div>
 
-      {rawMode ? (
+      {/* Inline link input */}
+      {showLinkBox && mode === 'rich' && (
+        <div className="flex gap-2 mb-2">
+          <input
+            ref={linkRef}
+            value={linkInput}
+            onChange={e => setLinkInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') applyLink(); if (e.key === 'Escape') { setShowLinkBox(false); setLinkInput('') } }}
+            placeholder="https://example.com"
+            className="flex-1 border border-blue-400 rounded px-3 py-1.5 text-sm bg-white dark:bg-gray-800 focus:outline-none"
+          />
+          <button type="button" onClick={applyLink} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-medium">Apply</button>
+          <button type="button" onClick={() => { setShowLinkBox(false); setLinkInput('') }} className="border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+        </div>
+      )}
+
+      {/* Edit (rich text) */}
+      {mode === 'rich' && (
+        <div className="border border-gray-300 dark:border-gray-600 rounded p-3 min-h-[16rem] cursor-text">
+          <EditorContent editor={editor} />
+        </div>
+      )}
+
+      {/* Raw HTML */}
+      {mode === 'raw' && (
         <textarea
           value={value}
           onChange={e => onChange(e.target.value)}
@@ -101,10 +139,17 @@ export default function BodyEditor({ value, onChange }: Props) {
           placeholder="<p>Your HTML email content here...</p>"
           spellCheck={false}
         />
-      ) : (
-        <div className="border border-gray-300 dark:border-gray-600 rounded p-3 min-h-[16rem] cursor-text">
-          <EditorContent editor={editor} />
-        </div>
+      )}
+
+      {/* Preview — iframe renders full HTML faithfully */}
+      {mode === 'preview' && (
+        <iframe
+          srcDoc={previewHtml}
+          sandbox="allow-same-origin"
+          className="w-full border border-gray-300 dark:border-gray-600 rounded"
+          style={{ height: '400px' }}
+          title="Email preview"
+        />
       )}
     </div>
   )
