@@ -17,8 +17,10 @@ interface ChatMessage {
 }
 
 function extractUrls(text: string): string[] {
-  const matches = text.match(/https?:\/\/[^\s)>\]"']+/g) || []
-  return [...new Set(matches)]
+  const withProtocol = text.match(/https?:\/\/[^\s)>\]"']+/g) || []
+  const bareWww = text.match(/(?<![/@\w])www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s)>\]"']*/g) || []
+  const normalized = bareWww.map(u => `https://${u}`)
+  return [...new Set([...withProtocol, ...normalized])]
 }
 
 async function fetchPageText(url: string): Promise<string> {
