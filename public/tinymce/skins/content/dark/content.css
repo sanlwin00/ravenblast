@@ -2,6 +2,10 @@
 
 /**
  * http://prismjs.com/
+ * @license MIT <https://opensource.org/licenses/MIT>
+ * @author Lea Verou <https://lea.verou.me>
+ * @see https://github.com/PrismJS/prism/blob/master/LICENSE
+ *
  * Dracula Theme originally by Zeno Rocha [@zenorocha]
  * https://draculatheme.com/
  *
@@ -16,9 +20,6 @@ body {
 }
 a {
   color: #4099ff;
-}
-a[data-mce-selected="inline-boundary"] {
-  color: #fff;
 }
 table {
   border-collapse: collapse;

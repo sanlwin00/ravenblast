@@ -13,10 +13,10 @@
   },
   "dependencies": {
     "@kenjiuno/msgreader": "^1.28.0",
-    "@tinymce/tinymce-react": "^6.3.0",
+    "@tinymce/tinymce-react": "^4.3.2",
     "electron-store": "^8.2.0",
     "nodemailer": "^6.10.1",
-    "tinymce": "^8.8.2",
+    "tinymce": "^6.8.6",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
