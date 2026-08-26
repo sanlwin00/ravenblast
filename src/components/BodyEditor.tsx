@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
+import { Editor } from '@tinymce/tinymce-react'
 
 interface Props {
   value: string
@@ -7,57 +8,9 @@ interface Props {
 
 type EditMode = 'visual' | 'html'
 
-function isFullDocument(html: string) {
-  return /^\s*(<!DOCTYPE|<html)/i.test(html.trim())
-}
-
 export default function BodyEditor({ value, onChange }: Props) {
   const [mode, setMode] = useState<EditMode>('visual')
   const [split, setSplit] = useState(false)
-  const visualRef = useRef<HTMLIFrameElement>(null)
-  const lastSetValue = useRef('')
-  const fullDoc = useRef(false)
-
-  function initVisualEditor(html: string) {
-    const iframe = visualRef.current
-    if (!iframe) return
-    const doc = iframe.contentDocument
-    if (!doc) return
-
-    fullDoc.current = isFullDocument(html)
-    lastSetValue.current = html
-
-    const docHtml = fullDoc.current
-      ? html
-      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:16px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333}</style></head><body>${html || '<p>Click here to start typing...</p>'}</body></html>`
-
-    doc.open()
-    doc.write(docHtml)
-    doc.close()
-    doc.designMode = 'on'
-
-    doc.addEventListener('input', () => {
-      const out = fullDoc.current ? doc.documentElement.outerHTML : doc.body.innerHTML
-      lastSetValue.current = out
-      onChange(out)
-    })
-  }
-
-  // Init when switching to visual mode
-  useEffect(() => {
-    if (mode === 'visual') {
-      requestAnimationFrame(() => initVisualEditor(value))
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode])
-
-  // Re-init when value changes externally (template loaded, AI applied)
-  useEffect(() => {
-    if (mode !== 'visual') return
-    if (value === lastSetValue.current) return
-    requestAnimationFrame(() => initVisualEditor(value))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
 
   function toolbarBtn(active: boolean, onClick: () => void, label: string) {
     return (
@@ -75,19 +28,10 @@ export default function BodyEditor({ value, onChange }: Props) {
     )
   }
 
-  const previewHtml = isFullDocument(value)
+  const isFullDoc = /^\s*(<!DOCTYPE|<html)/i.test(value.trim())
+  const previewHtml = isFullDoc
     ? value
     : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:16px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333}</style></head><body>${value}</body></html>`
-
-  const visualPane = (
-    <iframe
-      ref={visualRef}
-      sandbox="allow-same-origin"
-      className="w-full border border-gray-300 dark:border-gray-600 rounded bg-white"
-      style={{ minHeight: '24rem', height: '100%' }}
-      title="Visual email editor"
-    />
-  )
 
   const htmlPane = (
     <textarea
@@ -132,7 +76,31 @@ export default function BodyEditor({ value, onChange }: Props) {
         </div>
       </div>
 
-      {mode === 'visual' && visualPane}
+      {mode === 'visual' && (
+        <Editor
+          tinymceScriptSrc="/tinymce/tinymce.min.js"
+          value={value}
+          onEditorChange={(content) => onChange(content)}
+          init={{
+            height: 500,
+            menubar: false,
+            plugins: 'link lists table image code',
+            toolbar:
+              'undo redo | bold italic underline | forecolor backcolor | fontfamily fontsize | alignleft aligncenter alignright alignjustify | bullist numlist | link image table | code',
+            verify_html: false,
+            cleanup: false,
+            cleanup_on_startup: false,
+            convert_urls: false,
+            valid_elements: '*[*]',
+            extended_valid_elements: '*[*]',
+            valid_children: '+body[style],+*[*]',
+            skin: 'oxide',
+            content_css: 'default',
+            promotion: false,
+            branding: false,
+          }}
+        />
+      )}
 
       {mode === 'html' && !split && htmlPane}
 
