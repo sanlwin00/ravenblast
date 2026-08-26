@@ -9,6 +9,30 @@ interface Props {
   onRemoveRecipient: (email: string) => void
 }
 
+function markdownToHtml(md: string): string {
+  return md
+    // Fenced code blocks (extract before inline code)
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, (_m, _lang, code) =>
+      `<pre class="bg-gray-200 dark:bg-gray-800 rounded p-2 text-xs overflow-x-auto my-1"><code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`)
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code class="bg-gray-200 dark:bg-gray-800 rounded px-1 text-xs font-mono">$1</code>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Headings
+    .replace(/^### (.+)$/gm, '<h3 class="font-semibold mt-2 mb-1">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h3 class="font-semibold mt-2 mb-1">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h3 class="font-bold mt-2 mb-1 text-base">$1</h3>')
+    // Unordered lists
+    .replace(/^[-*] (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+    .replace(/(<li[\s\S]*?<\/li>)+/g, s => `<ul class="my-1">${s}</ul>`)
+    // Double newline → paragraph break
+    .replace(/\n\n/g, '<br/><br/>')
+    // Single newline
+    .replace(/\n/g, '<br/>')
+}
+
 const SYSTEM_PROMPT = `You are RavenBlast AI, an assistant built into a bulk email sender desktop app.
 You help the user:
 - Write and improve email templates (marketing emails, newsletters, business emails)
@@ -79,7 +103,10 @@ export default function AIChat({ open, onClose, onApplyTemplate, onRemoveRecipie
     return (
       <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
         <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'}`}>
-          <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+          {isUser
+            ? <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+            : <div className="break-words" dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.content) }} />
+          }
           {html && (
             <button
               onClick={() => onApplyTemplate(extractSubject(msg.content), html)}

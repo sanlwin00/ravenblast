@@ -42,7 +42,7 @@ export default function AttachmentRow({ attachments, onChange }: Props) {
           onClick={pickFiles}
           className="min-h-[44px] px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
         >
-          + Add File
+          + Add Attachment
         </button>
       </div>
       {attachments.length > 0 && (
