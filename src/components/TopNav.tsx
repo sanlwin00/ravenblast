@@ -26,7 +26,7 @@ export default function TopNav({ dark, onToggleDark, aiOpen, onToggleAI }: Props
       <div className="ml-auto flex items-center gap-3">
         <button onClick={onToggleAI}
           className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${aiOpen ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-          🤖 AI
+          🤖 AI Assistant
         </button>
         <button onClick={onToggleDark} className="text-xl w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle dark mode">
           {dark ? '☀️' : '🌙'}
