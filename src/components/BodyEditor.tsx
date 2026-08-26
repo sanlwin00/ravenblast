@@ -10,10 +10,11 @@ interface Props {
   onChange: (value: string) => void
 }
 
-type Mode = 'rich' | 'raw' | 'preview'
+type EditMode = 'rich' | 'raw' | 'preview'
 
 export default function BodyEditor({ value, onChange }: Props) {
-  const [mode, setMode] = useState<Mode>('rich')
+  const [mode, setMode] = useState<EditMode>('rich')
+  const [split, setSplit] = useState(true)
   const [linkInput, setLinkInput] = useState('')
   const [showLinkBox, setShowLinkBox] = useState(false)
   const linkRef = useRef<HTMLInputElement>(null)
@@ -43,7 +44,7 @@ export default function BodyEditor({ value, onChange }: Props) {
     if (showLinkBox) linkRef.current?.focus()
   }, [showLinkBox])
 
-  function switchMode(next: Mode) {
+  function switchMode(next: EditMode) {
     if (next === 'rich' && editor) {
       editor.commands.setContent(value, false)
     }
@@ -87,11 +88,44 @@ export default function BodyEditor({ value, onChange }: Props) {
 
   const previewHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:16px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6}</style></head><body>${value}</body></html>`
 
+  // In split mode, "preview" tab makes no sense — treat it as rich
+  const effectiveMode = split && mode === 'preview' ? 'rich' : mode
+
+  const editorPane = (
+    <>
+      {effectiveMode === 'rich' && (
+        <div className="border border-gray-300 dark:border-gray-600 rounded p-3 min-h-[16rem] cursor-text h-full">
+          <EditorContent editor={editor} />
+        </div>
+      )}
+      {effectiveMode === 'raw' && (
+        <textarea
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full h-64 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent font-mono text-sm resize-none"
+          placeholder="<p>Your HTML email content here...</p>"
+          spellCheck={false}
+          style={{ minHeight: '16rem' }}
+        />
+      )}
+    </>
+  )
+
+  const previewPane = (
+    <iframe
+      srcDoc={previewHtml}
+      sandbox="allow-same-origin"
+      className="w-full border border-gray-300 dark:border-gray-600 rounded bg-white"
+      style={{ minHeight: '16rem', height: '100%' }}
+      title="Email preview"
+    />
+  )
+
   return (
     <div>
       {/* Toolbar */}
       <div className="flex gap-1.5 mb-2 flex-wrap items-center">
-        {mode === 'rich' && editor && (
+        {effectiveMode === 'rich' && editor && (
           <>
             {toolbarBtn(editor.isActive('bold'), () => editor.chain().focus().toggleBold().run(), 'B')}
             {toolbarBtn(editor.isActive('italic'), () => editor.chain().focus().toggleItalic().run(), 'I')}
@@ -101,14 +135,28 @@ export default function BodyEditor({ value, onChange }: Props) {
           </>
         )}
         <div className="ml-auto flex gap-1.5">
-          {toolbarBtn(mode === 'rich', () => switchMode('rich'), 'Edit')}
-          {toolbarBtn(mode === 'raw', () => switchMode('raw'), 'HTML')}
-          {toolbarBtn(mode === 'preview', () => switchMode('preview'), 'Preview')}
+          {!split && toolbarBtn(effectiveMode === 'rich', () => switchMode('rich'), 'Edit')}
+          {!split && toolbarBtn(effectiveMode === 'raw', () => switchMode('raw'), 'HTML')}
+          {!split && toolbarBtn(effectiveMode === 'preview', () => switchMode('preview'), 'Preview')}
+          {split && toolbarBtn(effectiveMode === 'rich', () => switchMode('rich'), 'Rich')}
+          {split && toolbarBtn(effectiveMode === 'raw', () => switchMode('raw'), 'HTML')}
+          <button
+            type="button"
+            onClick={() => setSplit(v => !v)}
+            title={split ? 'Single view' : 'Split view'}
+            className={`px-3 py-1 border rounded text-sm transition-colors ${
+              split
+                ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-500 text-blue-700 dark:text-blue-300'
+                : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            ⬛ Split
+          </button>
         </div>
       </div>
 
       {/* Inline link input */}
-      {showLinkBox && mode === 'rich' && (
+      {showLinkBox && (
         <div className="flex gap-2 mb-2">
           <input
             ref={linkRef}
@@ -123,33 +171,17 @@ export default function BodyEditor({ value, onChange }: Props) {
         </div>
       )}
 
-      {/* Edit (rich text) */}
-      {mode === 'rich' && (
-        <div className="border border-gray-300 dark:border-gray-600 rounded p-3 min-h-[16rem] cursor-text">
-          <EditorContent editor={editor} />
+      {/* Split layout */}
+      {split ? (
+        <div className="grid grid-cols-2 gap-3" style={{ minHeight: '16rem' }}>
+          <div className="flex flex-col">{editorPane}</div>
+          <div className="flex flex-col">{previewPane}</div>
         </div>
-      )}
-
-      {/* Raw HTML */}
-      {mode === 'raw' && (
-        <textarea
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="w-full h-64 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent font-mono text-sm resize-y"
-          placeholder="<p>Your HTML email content here...</p>"
-          spellCheck={false}
-        />
-      )}
-
-      {/* Preview — iframe renders full HTML faithfully */}
-      {mode === 'preview' && (
-        <iframe
-          srcDoc={previewHtml}
-          sandbox="allow-same-origin"
-          className="w-full border border-gray-300 dark:border-gray-600 rounded"
-          style={{ height: '400px' }}
-          title="Email preview"
-        />
+      ) : (
+        <>
+          {effectiveMode !== 'preview' && editorPane}
+          {effectiveMode === 'preview' && previewPane}
+        </>
       )}
     </div>
   )
