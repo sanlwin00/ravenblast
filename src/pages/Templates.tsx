@@ -11,6 +11,7 @@ export default function Templates() {
   const [editBody, setEditBody] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const [status, setStatus] = useState('')
+  const [statusError, setStatusError] = useState(false)
   const dropRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { load() }, [])
@@ -35,13 +36,15 @@ export default function Templates() {
     setEditBody(t.bodyHtml)
   }
 
+  function showError(msg: string) { setStatus(msg); setStatusError(true) }
+  function showOk(msg: string) { setStatus(msg); setStatusError(false); setTimeout(() => setStatus(''), 3000) }
+
   async function save() {
-    if (!editName.trim()) { setStatus('Template name is required'); return }
+    if (!editName.trim()) { showError('Template name is required'); return }
     await ipc.templatesSave({ ...editing, name: editName, subject: editSubject, bodyHtml: editBody })
     setEditing(null)
-    setStatus('Template saved')
+    showOk('Template saved')
     load()
-    setTimeout(() => setStatus(''), 3000)
   }
 
   async function del(id: string) {
@@ -61,21 +64,25 @@ export default function Templates() {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files[0]
-    if (!file || !file.name.endsWith('.msg')) {
-      setStatus('Please drop an Outlook .msg file')
+    if (!file || !file.name.toLowerCase().endsWith('.msg')) {
+      showError('Please drop an Outlook .msg file')
       return
     }
     const filePath = (file as unknown as { path: string }).path
-    const result = await ipc.msgParse(filePath)
-    if (result.error) {
-      setStatus(`Error: ${result.error}`)
-      return
+    showOk('Parsing .msg file...')
+    try {
+      const result = await ipc.msgParse(filePath)
+      if (result.error) {
+        showError(`Parse error: ${result.error}`)
+        return
+      }
+      const name = prompt('Template name:', file.name.replace(/\.msg$/i, '')) || file.name.replace(/\.msg$/i, '')
+      await ipc.templatesSave({ name, subject: result.subject || '', bodyHtml: result.bodyHtml || '' })
+      showOk('Template created from .msg file')
+      load()
+    } catch (err) {
+      showError(`Failed: ${(err as Error).message ?? String(err)}`)
     }
-    const name = prompt('Template name:', file.name.replace('.msg', '')) || file.name.replace('.msg', '')
-    await ipc.templatesSave({ name, subject: result.subject || '', bodyHtml: result.bodyHtml || '' })
-    setStatus('Template created from .msg file')
-    load()
-    setTimeout(() => setStatus(''), 3000)
   }
 
   if (editing !== null) {
@@ -105,7 +112,7 @@ export default function Templates() {
             <button onClick={save} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded text-base">Save Template</button>
             <button onClick={() => setEditing(null)} className="border border-gray-300 dark:border-gray-600 px-6 py-3 rounded text-base hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
           </div>
-          {status && <p className="text-green-600 dark:text-green-400 font-medium">{status}</p>}
+          {status && <p className={`font-medium ${statusError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{status}</p>}
         </div>
       </div>
     )
@@ -118,7 +125,7 @@ export default function Templates() {
         <button onClick={startNew} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded text-base">+ New Template</button>
       </div>
 
-      {status && <p className="mb-4 text-green-600 dark:text-green-400 font-medium">{status}</p>}
+      {status && <p className={`mb-4 font-medium ${statusError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{status}</p>}
 
       {/* .msg drop zone */}
       <div ref={dropRef} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
