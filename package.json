@@ -13,12 +13,7 @@
   },
   "dependencies": {
     "@kenjiuno/msgreader": "^1.28.0",
-    "@tiptap/extension-image": "^2.27.2",
-    "@tiptap/extension-link": "^2.27.2",
-    "@tiptap/extension-underline": "^2.27.2",
     "@tiptap/pm": "^2.27.2",
-    "@tiptap/react": "^2.27.2",
-    "@tiptap/starter-kit": "^2.27.2",
     "electron-store": "^8.2.0",
     "nodemailer": "^6.10.1",
     "xlsx": "^0.18.5"
