@@ -21,7 +21,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
   const navigate = useNavigate()
 
   const [smtpProfileId, setSmtpProfileId] = useState('')
-  const [replyTo, setReplyTo] = useState('')
   const [cc, setCc] = useState<string[]>([])
   const [bcc, setBcc] = useState<string[]>([])
   const [subject, setSubject] = useState('')
@@ -73,7 +72,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
     if (!smtpProfileId || contacts.length === 0) return
     const config: BlastConfig = {
       smtpProfileId,
-      replyTo,
+      replyTo: '',
       to: contacts,
       cc,
       bcc,
@@ -85,7 +84,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
     }
     setSending(true)
     await ipc.blastStart(config)
-  }, [smtpProfileId, replyTo, contacts, cc, bcc, subject, bodyHtml, attachments, delayMin, delayMax])
+  }, [smtpProfileId, contacts, cc, bcc, subject, bodyHtml, attachments, delayMin, delayMax])
 
   const handleTestConnection = useCallback(async () => {
     if (!smtpProfileId) {
@@ -109,19 +108,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-5">
-        <SmtpSelector value={smtpProfileId} onChange={setSmtpProfileId} />
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Reply-To</label>
-          <input
-            type="email"
-            value={replyTo}
-            onChange={e => setReplyTo(e.target.value)}
-            placeholder="reply@example.com"
-            className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
-          />
-        </div>
-
         {/* Recipients - drag-drop Excel or type emails */}
         <div
           onDragOver={e => { e.preventDefault(); setRecipientDragOver(true) }}
@@ -141,6 +127,8 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
         <RecipientChipInput label="CC" values={cc} onChange={setCc} />
         <RecipientChipInput label="BCC" values={bcc} onChange={setBcc} />
 
+        <SmtpSelector value={smtpProfileId} onChange={setSmtpProfileId} />
+
         <div>
           <label className="block text-sm font-medium mb-1">Subject</label>
           <input
@@ -152,10 +140,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied }: Props) {
           />
         </div>
 
+        <AttachmentRow attachments={attachments} onChange={setAttachments} />
+
         <TemplatePicker onSelect={setBodyHtml} hasContent={bodyHtml.length > 0} />
         <BodyEditor value={bodyHtml} onChange={setBodyHtml} />
-
-        <AttachmentRow attachments={attachments} onChange={setAttachments} />
 
         <DelaySlider min={delayMin} max={delayMax} onMinChange={setDelayMin} onMaxChange={setDelayMax} />
 
