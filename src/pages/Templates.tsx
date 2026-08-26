@@ -45,6 +45,19 @@ export default function Templates() {
     setEditBody(t.bodyHtml)
   }
 
+  function startClone(t: Template) {
+    const existingNames = new Set(templates.map(x => x.name))
+    const base = `${t.name} (Copy)`
+    let name = base
+    let n = 2
+    while (existingNames.has(name)) name = `${base} ${n++}`
+    const clone: Template = { id: '', name, subject: t.subject, bodyHtml: t.bodyHtml, createdAt: '' }
+    setEditing(clone)
+    setEditName(name)
+    setEditSubject(t.subject)
+    setEditBody(t.bodyHtml)
+  }
+
   function showError(msg: string) { setStatus(msg); setStatusError(true) }
   function showOk(msg: string) { setStatus(msg); setStatusError(false); setTimeout(() => setStatus(''), 3000) }
 
@@ -203,6 +216,7 @@ export default function Templates() {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => startEdit(t)} className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Edit</button>
+                <button onClick={() => startClone(t)} className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Clone</button>
                 {pendingDelete === t.id ? (
                   <>
                     <button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">Confirm Delete</button>
