@@ -16,10 +16,21 @@ interface ChatMessage {
   content: string
 }
 
+const KNOWN_TLDS = /(?:com|net|org|io|sg|co|app|dev|ai|edu|gov|info|biz|ca|uk|au|nz|my|ph|id|th|vn|hk|tw|me|us|jp|kr|de|fr|in)/
+
 function extractUrls(text: string): string[] {
   const withProtocol = text.match(/https?:\/\/[^\s)>\]"']+/g) || []
-  const bareWww = text.match(/(?<![/@\w])www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s)>\]"']*/g) || []
-  const normalized = bareWww.map(u => `https://${u}`)
+  // Match bare domains: optional www., then domain parts ending in a known TLD
+  const bareDomain = new RegExp(
+    `(?<![.@/\\w])(?:www\\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(?:\\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\\.${KNOWN_TLDS.source}(?:/[^\\s)>\\]"']*)?`,
+    'g'
+  )
+  const bareMatches = text.match(bareDomain) || []
+  // Exclude anything already captured with a protocol
+  const protocolSet = new Set(withProtocol.map(u => u.replace(/^https?:\/\//, '')))
+  const normalized = bareMatches
+    .filter(u => !protocolSet.has(u))
+    .map(u => `https://${u}`)
   return [...new Set([...withProtocol, ...normalized])]
 }
 
