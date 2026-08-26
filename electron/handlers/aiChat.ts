@@ -16,6 +16,31 @@ interface ChatMessage {
   content: string
 }
 
+function extractUrls(text: string): string[] {
+  const matches = text.match(/https?:\/\/[^\s)>\]"']+/g) || []
+  return [...new Set(matches)]
+}
+
+async function fetchPageText(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RavenBlast/1.0; +https://ravenblast.app)' },
+      signal: AbortSignal.timeout(8000)
+    })
+    const html = await res.text()
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 5000)
+    return text
+  } catch {
+    return ''
+  }
+}
+
 export function registerAiChatHandlers(): void {
   ipcMain.handle('ai:get-key', () => {
     const key = store.get('openaiKey')
@@ -39,6 +64,29 @@ export function registerAiChatHandlers(): void {
 
     const model = store.get('model') || 'gpt-4o'
 
+    // Auto-fetch any URLs mentioned in the latest user message
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
+    let webContext = ''
+    if (lastUserMsg) {
+      const urls = extractUrls(lastUserMsg.content)
+      if (urls.length > 0) {
+        const fetched = await Promise.all(urls.slice(0, 2).map(async url => {
+          const text = await fetchPageText(url)
+          return text ? `\n\n[Web content from ${url}]:\n${text}` : ''
+        }))
+        webContext = fetched.filter(Boolean).join('')
+      }
+    }
+
+    // Inject web content into the system message
+    const enrichedMessages = webContext
+      ? messages.map((m, i) =>
+          m.role === 'system' && i === 0
+            ? { ...m, content: m.content + `\n\nWEB CONTENT FETCHED FOR THIS REQUEST:${webContext}` }
+            : m
+        )
+      : messages
+
     try {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -48,7 +96,7 @@ export function registerAiChatHandlers(): void {
         },
         body: JSON.stringify({
           model,
-          messages,
+          messages: enrichedMessages,
           temperature: 0.7,
           max_tokens: 4000
         })
