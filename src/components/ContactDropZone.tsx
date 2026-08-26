@@ -96,8 +96,8 @@ export default function ContactDropZone() {
 
             <div className="flex gap-3">
               <button onClick={() => setMapping(null)}
-                className="min-h-[44px] flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                Cancel
+                className="flex items-center justify-center gap-1.5 flex-1 bg-gray-50 dark:bg-gray-700/60 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                ✕ Cancel
               </button>
               <button onClick={confirmMapping}
                 disabled={!colEmail}

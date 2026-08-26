@@ -17,10 +17,10 @@ export default function BodyEditor({ value, onChange }: Props) {
       <button
         type="button"
         onClick={onClick}
-        className={`px-3 py-1 border rounded text-sm transition-colors ${
+        className={`px-3 py-1.5 border rounded-lg text-sm transition-colors ${
           active
-            ? 'bg-gray-200 dark:bg-gray-600 border-gray-400 dark:border-gray-500'
-            : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+            ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-500 text-blue-700 dark:text-blue-300'
+            : 'bg-gray-50 dark:bg-gray-700/60 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
         }`}
       >
         {label}
@@ -64,10 +64,10 @@ export default function BodyEditor({ value, onChange }: Props) {
             <button
               type="button"
               onClick={() => setSplit(v => !v)}
-              className={`px-3 py-1 border rounded text-sm transition-colors ${
+              className={`px-3 py-1.5 border rounded-lg text-sm transition-colors ${
                 split
                   ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-500 text-blue-700 dark:text-blue-300'
-                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'bg-gray-50 dark:bg-gray-700/60 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               ⬛ Split
