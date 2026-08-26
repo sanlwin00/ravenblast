@@ -32,6 +32,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   const [recipientDragOver, setRecipientDragOver] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([])
+  const [testSendOpen, setTestSendOpen] = useState(false)
+  const [testSendEmail, setTestSendEmail] = useState('')
+  const [testSendStatus, setTestSendStatus] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [testSending, setTestSending] = useState(false)
 
   // Load persisted draft on mount
   useEffect(() => {
@@ -111,16 +115,17 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
     await ipc.blastStart(config)
   }, [smtpProfileId, contacts, cc, bcc, subject, bodyHtml, attachments, delayMin, delayMax])
 
-  const handleTestConnection = useCallback(async () => {
-    if (!smtpProfileId) {
-      alert('Select an SMTP profile first.')
-      return
-    }
-    const result = await ipc.smtpTest(smtpProfileId)
-    alert(result.ok ? 'Connection successful.' : `Connection failed: ${result.error}`)
-  }, [smtpProfileId])
+  async function handleTestSend() {
+    if (!smtpProfileId || !testSendEmail || !subject || !bodyHtml) return
+    setTestSending(true)
+    setTestSendStatus(null)
+    const result = await ipc.smtpSendTest({ profileId: smtpProfileId, to: testSendEmail, subject, bodyHtml })
+    setTestSendStatus(result.ok ? { ok: true, msg: `Sent to ${testSendEmail}` } : { ok: false, msg: result.error ?? 'Send failed' })
+    setTestSending(false)
+  }
 
   const canSend = Boolean(smtpProfileId && contacts.length > 0 && subject && bodyHtml)
+  const canTestSend = Boolean(smtpProfileId && subject && bodyHtml)
 
   void savedTemplates
 
@@ -175,10 +180,11 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
 
         <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
           <button
-            onClick={handleTestConnection}
-            className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+            onClick={() => { setTestSendOpen(true); setTestSendStatus(null) }}
+            disabled={!canTestSend}
+            className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Test Connection
+            Test Send
           </button>
           <button
             onClick={handleSend}
@@ -188,6 +194,48 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
             Send to All ({contacts.length})
           </button>
         </div>
+
+        {/* Test Send modal */}
+        {testSendOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+              <h2 className="text-lg font-semibold">Send Test Email</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Sends the current subject and body to the address below, prefixed with [TEST].</p>
+              <div>
+                <label className="block text-sm font-medium mb-1">Send to</label>
+                <input
+                  type="email"
+                  value={testSendEmail}
+                  onChange={e => { setTestSendEmail(e.target.value); setTestSendStatus(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') handleTestSend() }}
+                  placeholder="you@example.com"
+                  autoFocus
+                  className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
+                />
+              </div>
+              {testSendStatus && (
+                <div className={`text-sm font-medium px-3 py-2 rounded ${testSendStatus.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'}`}>
+                  {testSendStatus.ok ? '✓ ' : '✗ '}{testSendStatus.msg}
+                </div>
+              )}
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => { setTestSendOpen(false); setTestSendStatus(null) }}
+                  className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleTestSend}
+                  disabled={testSending || !testSendEmail}
+                  className="min-h-[44px] px-6 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed ml-auto font-medium"
+                >
+                  {testSending ? 'Sending...' : 'Send Test'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

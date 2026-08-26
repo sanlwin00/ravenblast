@@ -81,4 +81,33 @@ export function registerSmtpHandlers(): void {
       return { ok: false, error: (err as Error).message }
     }
   })
+
+  // Test connection against raw profile values (before saving)
+  ipcMain.handle('smtp:test-profile', async (_event, profile: SmtpProfile) => {
+    try {
+      const transporter = createTransporter(profile)
+      await transporter.verify()
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
+
+  // Send a single test email
+  ipcMain.handle('smtp:send-test', async (_event, { profileId, to, subject, bodyHtml }: { profileId: string; to: string; subject: string; bodyHtml: string }) => {
+    const profile = getProfileById(profileId)
+    if (!profile) return { ok: false, error: 'No account selected' }
+    try {
+      const transporter = createTransporter(profile)
+      await transporter.sendMail({
+        from: profile.fromName ? `"${profile.fromName}" <${profile.username}>` : profile.username,
+        to,
+        subject: `[TEST] ${subject}`,
+        html: bodyHtml
+      })
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
 }

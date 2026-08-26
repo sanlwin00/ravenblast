@@ -7,6 +7,8 @@ declare global {
       smtpSave(profile: Omit<SmtpProfile, 'id'> & { id?: string }): Promise<{ ok: boolean }>
       smtpDelete(id: string): Promise<{ ok: boolean }>
       smtpTest(id: string): Promise<{ ok: boolean; error?: string }>
+      smtpTestProfile(profile: SmtpProfile): Promise<{ ok: boolean; error?: string }>
+      smtpSendTest(args: { profileId: string; to: string; subject: string; bodyHtml: string }): Promise<{ ok: boolean; error?: string }>
 
       contactsParseExcel(filePath: string): Promise<Record<string, string>[]>
       msgParse(filePath: string): Promise<{

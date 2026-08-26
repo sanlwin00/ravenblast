@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('api', {
   smtpSave: (profile: unknown) => ipcRenderer.invoke('smtp:save', profile),
   smtpDelete: (id: string) => ipcRenderer.invoke('smtp:delete', id),
   smtpTest: (id: string) => ipcRenderer.invoke('smtp:test', id),
+  smtpTestProfile: (profile: unknown) => ipcRenderer.invoke('smtp:test-profile', profile),
+  smtpSendTest: (args: unknown) => ipcRenderer.invoke('smtp:send-test', args),
 
   // Contacts
   contactsParseExcel: (filePath: string) => ipcRenderer.invoke('contacts:parse-excel', filePath),

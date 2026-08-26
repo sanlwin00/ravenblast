@@ -22,6 +22,8 @@ export default function Settings() {
   const [showPw, setShowPw] = useState(false)
   const [testResult, setTestResult] = useState<{ id: string; ok: boolean; error?: string } | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [modalTestResult, setModalTestResult] = useState<{ ok: boolean; error?: string } | null>(null)
+  const [modalTesting, setModalTesting] = useState(false)
   const [openaiKey, setOpenaiKey] = useState('')
   const [openaiStatus, setOpenaiStatus] = useState('')
   const [aiModel, setAiModel] = useState('gpt-4o')
@@ -55,7 +57,17 @@ export default function Settings() {
     await ipc.smtpSave(editing as Omit<SmtpProfile, 'id'> & { id?: string })
     setEditing(null)
     setShowPw(false)
+    setModalTestResult(null)
     loadProfiles()
+  }
+
+  async function testModalConnection() {
+    if (!editing) return
+    setModalTesting(true)
+    setModalTestResult(null)
+    const result = await ipc.smtpTestProfile(editing as SmtpProfile)
+    setModalTestResult(result)
+    setModalTesting(false)
   }
 
   async function remove(id: string) {
@@ -253,10 +265,19 @@ export default function Settings() {
                 className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
             </div>
 
+            {modalTestResult && (
+              <div className={`text-sm font-medium px-3 py-2 rounded ${modalTestResult.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'}`}>
+                {modalTestResult.ok ? '✓ Connection successful' : `✗ ${modalTestResult.error}`}
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
-              <button onClick={() => { setEditing(null); setShowPw(false) }}
+              <button onClick={() => { setEditing(null); setShowPw(false); setModalTestResult(null) }}
                 className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
                 Cancel
+              </button>
+              <button onClick={testModalConnection} disabled={modalTesting}
+                className="min-h-[44px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40">
+                {modalTesting ? 'Testing...' : 'Test Connection'}
               </button>
               <button onClick={save}
                 className="min-h-[44px] px-6 py-2 bg-[#0078D4] text-white rounded hover:bg-blue-600 ml-auto">
