@@ -9,9 +9,13 @@ import Templates from './pages/Templates'
 import AIChat from './components/AIChat'
 import { BlastStoreProvider } from './store/blastStore'
 
+const AI_MIN_WIDTH = 280
+const AI_DEFAULT_WIDTH = 320
+
 export default function App() {
   const [dark, setDark] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
+  const [aiWidth, setAiWidth] = useState(AI_DEFAULT_WIDTH)
   const [aiTemplate, setAiTemplate] = useState<{ subject: string; body: string } | null>(null)
 
   function toggleDark() {
@@ -35,7 +39,10 @@ export default function App() {
     <BlastStoreProvider>
       <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
         <TopNav dark={dark} onToggleDark={toggleDark} aiOpen={aiOpen} onToggleAI={() => setAiOpen(o => !o)} />
-        <main className={`pt-14 transition-all ${aiOpen ? 'mr-80' : ''}`}>
+        <main
+          className="pt-14 transition-all"
+          style={{ marginRight: aiOpen ? Math.max(AI_MIN_WIDTH, aiWidth) : 0 }}
+        >
           <Routes>
             <Route path="/" element={<Composer aiTemplate={aiTemplate} onAiTemplateApplied={() => setAiTemplate(null)} />} />
             <Route path="/templates" element={<Templates />} />
@@ -44,7 +51,14 @@ export default function App() {
             <Route path="/summary" element={<Summary />} />
           </Routes>
         </main>
-        <AIChat open={aiOpen} onClose={() => setAiOpen(false)} onApplyTemplate={handleApplyTemplate} onRemoveRecipient={handleRemoveRecipient} />
+        <AIChat
+          open={aiOpen}
+          width={aiWidth}
+          onWidthChange={setAiWidth}
+          onClose={() => setAiOpen(false)}
+          onApplyTemplate={handleApplyTemplate}
+          onRemoveRecipient={handleRemoveRecipient}
+        />
       </div>
     </BlastStoreProvider>
   )
