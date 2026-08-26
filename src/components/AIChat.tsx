@@ -48,12 +48,9 @@ async function buildSystemPrompt(composerCtx: ComposerCtx): Promise<string> {
 
   let composerSection = ''
   if (composerCtx.subject || composerCtx.bodyHtml) {
-    const bodyPreview = composerCtx.bodyHtml
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 400)
-    composerSection = `\n\nCURRENT COMPOSER STATE:\n- Subject: ${composerCtx.subject || '(empty)'}\n- Recipients loaded: ${composerCtx.recipientCount}\n- Body preview: ${bodyPreview || '(empty)'}`
+    // Pass full HTML so AI can modify it rather than regenerating from scratch
+    const bodyHtml = composerCtx.bodyHtml.slice(0, 12000)
+    composerSection = `\n\nCURRENT COMPOSER STATE:\n- Subject: ${composerCtx.subject || '(empty)'}\n- Recipients loaded: ${composerCtx.recipientCount}\n- Body HTML (full content — modify this when asked to edit):\n\`\`\`html\n${bodyHtml || '(empty)'}\n\`\`\``
   } else {
     composerSection = `\n\nCURRENT COMPOSER STATE: empty (no subject or body yet). Recipients loaded: ${composerCtx.recipientCount}.`
   }
