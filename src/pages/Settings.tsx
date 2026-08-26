@@ -24,11 +24,13 @@ export default function Settings() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [openaiKey, setOpenaiKey] = useState('')
   const [openaiStatus, setOpenaiStatus] = useState('')
+  const [aiModel, setAiModel] = useState('gpt-4o')
   const [delayMin, setDelayMin] = useState(2)
   const [delayMax, setDelayMax] = useState(5)
 
   useEffect(() => {
     ipc.aiGetKey().then(k => { if (k) setOpenaiKey(k) })
+    ipc.aiGetModel().then(m => { if (m) setAiModel(m) })
     ipc.draftGet().then(d => {
       setDelayMin(d.delayMin ?? 2)
       setDelayMax(d.delayMax ?? 5)
@@ -151,6 +153,19 @@ export default function Settings() {
       <section className="mt-10">
         <h2 className="text-xl font-bold mb-4">AI Assistant</h2>
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Model</label>
+            <select
+              value={aiModel}
+              onChange={e => { setAiModel(e.target.value); ipc.aiSetModel(e.target.value) }}
+              className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800"
+            >
+              <option value="gpt-4o">GPT-4o (best quality)</option>
+              <option value="gpt-4.1">GPT-4.1</option>
+              <option value="gpt-4o-mini">GPT-4o mini (faster, cheaper)</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            </select>
+          </div>
           <label className="block text-sm font-medium mb-1">OpenAI API Key</label>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Used for the AI chat sidebar. Your key is stored locally and never shared.</p>
           <div className="flex gap-3">

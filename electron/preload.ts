@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld('api', {
   // AI Chat
   aiGetKey: () => ipcRenderer.invoke('ai:get-key'),
   aiSetKey: (key: string) => ipcRenderer.invoke('ai:set-key', key),
+  aiGetModel: () => ipcRenderer.invoke('ai:get-model'),
+  aiSetModel: (model: string) => ipcRenderer.invoke('ai:set-model', model),
   aiChat: (messages: unknown) => ipcRenderer.invoke('ai:chat', messages),
 
   // Draft persistence

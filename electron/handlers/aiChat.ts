@@ -3,11 +3,12 @@ import Store from 'electron-store'
 
 interface StoreSchema {
   openaiKey: string
+  model: string
 }
 
 const store = new Store<StoreSchema>({
   name: 'ravenblast-ai',
-  defaults: { openaiKey: '' }
+  defaults: { openaiKey: '', model: 'gpt-4o' }
 })
 
 interface ChatMessage {
@@ -26,9 +27,17 @@ export function registerAiChatHandlers(): void {
     return { ok: true }
   })
 
+  ipcMain.handle('ai:get-model', () => store.get('model'))
+  ipcMain.handle('ai:set-model', (_event, model: string) => {
+    store.set('model', model)
+    return { ok: true }
+  })
+
   ipcMain.handle('ai:chat', async (_event, messages: ChatMessage[]) => {
     const apiKey = store.get('openaiKey')
     if (!apiKey) return { error: 'No OpenAI API key configured. Go to Settings to add one.' }
+
+    const model = store.get('model') || 'gpt-4o'
 
     try {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -38,10 +47,10 @@ export function registerAiChatHandlers(): void {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model,
           messages,
           temperature: 0.7,
-          max_tokens: 2000
+          max_tokens: 4000
         })
       })
       if (!res.ok) {

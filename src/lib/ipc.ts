@@ -33,6 +33,8 @@ declare global {
 
       aiGetKey(): Promise<string>
       aiSetKey(key: string): Promise<{ ok: boolean }>
+      aiGetModel(): Promise<string>
+      aiSetModel(model: string): Promise<{ ok: boolean }>
       aiChat(messages: Array<{ role: string; content: string }>): Promise<{ content?: string; error?: string }>
 
       onBlastProgress(cb: (progress: BlastProgress) => void): () => void
