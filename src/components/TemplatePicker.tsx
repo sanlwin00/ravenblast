@@ -2,20 +2,10 @@ import { useState, useEffect } from 'react'
 import { ipc } from '../lib/ipc'
 import type { Template } from '../types'
 
-import newsletterHtml from '../templates/newsletter.html?raw'
-import promotionHtml from '../templates/promotion.html?raw'
-import businessHtml from '../templates/business.html?raw'
-
 interface Props {
   onSelect: (html: string, subject?: string) => void
   hasContent: boolean
 }
-
-const STOCK: { label: string; html: string; subject?: string }[] = [
-  { label: 'Newsletter', html: newsletterHtml },
-  { label: 'Promotion', html: promotionHtml },
-  { label: 'Plain Business', html: businessHtml }
-]
 
 export default function TemplatePicker({ onSelect, hasContent }: Props) {
   const [savedTemplates, setSavedTemplates] = useState<Template[]>([])
@@ -26,30 +16,25 @@ export default function TemplatePicker({ onSelect, hasContent }: Props) {
     ipc.templatesList().then(setSavedTemplates)
   }, [])
 
-  function apply(key: string) {
-    if (key.startsWith('stock:')) {
-      const idx = parseInt(key.replace('stock:', ''), 10)
-      const tpl = STOCK[idx]
-      if (tpl) onSelect(tpl.html, tpl.subject)
-    } else if (key.startsWith('saved:')) {
-      const id = key.replace('saved:', '')
-      const tpl = savedTemplates.find(t => t.id === id)
-      if (tpl) onSelect(tpl.bodyHtml, tpl.subject)
-    }
+  function apply(id: string) {
+    const tpl = savedTemplates.find(t => t.id === id)
+    if (tpl) onSelect(tpl.bodyHtml, tpl.subject)
     setSelected('')
     setPendingKey(null)
   }
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const key = e.target.value
-    if (!key) return
+    const id = e.target.value
+    if (!id) return
     if (hasContent) {
-      setPendingKey(key)
-      setSelected(key)
+      setPendingKey(id)
+      setSelected(id)
     } else {
-      apply(key)
+      apply(id)
     }
   }
+
+  if (savedTemplates.length === 0) return null
 
   return (
     <div>
@@ -60,16 +45,9 @@ export default function TemplatePicker({ onSelect, hasContent }: Props) {
         className="min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800 w-56"
       >
         <option value="">Choose template...</option>
-        {STOCK.map((tpl, i) => (
-          <option key={`stock:${i}`} value={`stock:${i}`}>{tpl.label}</option>
+        {savedTemplates.map(t => (
+          <option key={t.id} value={t.id}>{t.name}</option>
         ))}
-        {savedTemplates.length > 0 && (
-          <optgroup label="My Templates">
-            {savedTemplates.map(t => (
-              <option key={`saved:${t.id}`} value={`saved:${t.id}`}>{t.name}</option>
-            ))}
-          </optgroup>
-        )}
       </select>
 
       {/* Inline confirmation when body already has content */}
@@ -78,7 +56,7 @@ export default function TemplatePicker({ onSelect, hasContent }: Props) {
           <span className="text-amber-800 dark:text-amber-200 flex-1">Replace current body with this template?</span>
           <button
             type="button"
-            onClick={() => apply(pendingKey)}
+            onClick={() => { if (pendingKey) apply(pendingKey) }}
             className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-xs font-semibold"
           >
             Replace
