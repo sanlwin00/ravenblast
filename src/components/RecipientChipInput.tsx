@@ -25,9 +25,11 @@ export default function RecipientChipInput({ label, values, onChange }: Props) {
   }
 
   function handleKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault()
-      addEmail(input)
+    if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') {
+      if (input.trim()) {
+        e.preventDefault()
+        addEmail(input)
+      }
     } else if (e.key === 'Backspace' && input === '' && values.length > 0) {
       onChange(values.slice(0, -1))
     }
@@ -65,9 +67,10 @@ export default function RecipientChipInput({ label, values, onChange }: Props) {
           onKeyDown={handleKey}
           onBlur={() => addEmail(input)}
           className="flex-1 outline-none bg-transparent text-sm min-w-[140px] py-0.5"
-          placeholder={values.length === 0 ? 'Enter email addresses...' : ''}
+          placeholder={values.length === 0 ? 'Type email then press Enter, Tab, or comma' : ''}
         />
       </div>
+      <p className="text-xs text-gray-400 mt-0.5">Press Enter, Tab, or comma to add · Backspace to remove last</p>
     </div>
   )
 }
