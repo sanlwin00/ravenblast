@@ -61,12 +61,18 @@ You help the user:
 - Write and improve email templates (marketing emails, newsletters, business emails)
 - Suggest subject lines
 - Edit or rewrite the current email body in the Composer
+- Configure SMTP account profiles
 - Answer questions about the app
 
 When you create or edit an email template, always wrap the HTML body in a code block with language "html" so the user can apply it. Example:
 \`\`\`html
 <p>Dear {{Name}},</p>
 <p>Your content here.</p>
+\`\`\`
+
+When the user provides SMTP settings (host, port, username, password, etc.), extract the fields and return them in a code block with language "smtp-config" as JSON. Include all fields you can infer. For encryption: use "tls" for port 465, "starttls" for port 587, "none" for port 25. Example:
+\`\`\`smtp-config
+{"name":"Gmail","host":"smtp.gmail.com","port":587,"encryption":"starttls","username":"user@gmail.com","password":"app-password-here","fromName":"Your Name","defaultReplyTo":""}
 \`\`\`
 
 Support merge tags {{Name}} and {{Company}}. Keep emails professional.${templateSection}${composerSection}`
@@ -153,6 +159,25 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
     return match ? match[1].trim() : ''
   }
 
+  function extractSmtpConfig(content: string): import('../types').SmtpProfile | null {
+    const match = content.match(/```smtp-config\n?([\s\S]*?)```/)
+    if (!match) return null
+    try {
+      return JSON.parse(match[1].trim()) as import('../types').SmtpProfile
+    } catch { return null }
+  }
+
+  async function handleSaveSmtpConfig(idx: number, config: import('../types').SmtpProfile) {
+    setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: 'Saving...' }))
+    try {
+      await ipc.smtpSave(config)
+      setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: `Account "${config.name || config.host}" saved` }))
+      setTimeout(() => setSaveStatus(s => { const n = { ...s }; delete n[`smtp-${idx}`]; return n }), 3000)
+    } catch {
+      setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: 'Save failed' }))
+    }
+  }
+
   async function handleSaveAsTemplate(idx: number, subject: string, html: string) {
     setSaveStatus(s => ({ ...s, [idx]: 'Saving...' }))
     try {
@@ -171,6 +196,7 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
     const isUser = msg.role === 'user'
     const html = !isUser ? extractHtml(msg.content) : null
     const subject = !isUser ? extractSubject(msg.content) : ''
+    const smtpConfig = !isUser ? extractSmtpConfig(msg.content) : null
 
     return (
       <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
@@ -194,6 +220,26 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
               {saveStatus[idx] && (
                 <p className={`text-xs px-1 ${saveStatus[idx].startsWith('Saved') ? 'text-green-600' : 'text-red-500'}`}>
                   {saveStatus[idx]}
+                </p>
+              )}
+            </div>
+          )}
+          {smtpConfig && (
+            <div className="mt-2 flex flex-col gap-1.5">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded px-3 py-2 text-xs text-gray-600 dark:text-gray-400 font-mono leading-relaxed">
+                <div><span className="font-semibold">Host:</span> {smtpConfig.host}:{smtpConfig.port}</div>
+                <div><span className="font-semibold">User:</span> {smtpConfig.username}</div>
+                <div><span className="font-semibold">Enc:</span> {smtpConfig.encryption?.toUpperCase()}</div>
+                {smtpConfig.fromName && <div><span className="font-semibold">From:</span> {smtpConfig.fromName}</div>}
+              </div>
+              <button
+                onClick={() => handleSaveSmtpConfig(idx, smtpConfig)}
+                className="bg-white text-purple-700 border border-purple-300 rounded px-3 py-1.5 text-xs font-semibold hover:bg-purple-50 w-full text-left">
+                ⚙️ Save Account to Settings
+              </button>
+              {saveStatus[`smtp-${idx}`] && (
+                <p className={`text-xs px-1 ${saveStatus[`smtp-${idx}`].startsWith('Save failed') ? 'text-red-500' : 'text-green-600'}`}>
+                  {saveStatus[`smtp-${idx}`]}
                 </p>
               )}
             </div>
