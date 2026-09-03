@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import Store from 'electron-store'
 import { createTransport } from 'nodemailer'
 import { randomUUID } from 'crypto'
+import juice from 'juice'
 
 export interface SmtpProfile {
   id: string
@@ -107,7 +108,7 @@ export function registerSmtpHandlers(): void {
         from: profile.fromName ? `"${profile.fromName}" <${profile.username}>` : profile.username,
         to,
         subject: `[TEST] ${subject}`,
-        html: bodyHtml
+        html: juice(bodyHtml)
       })
       return { ok: true }
     } catch (err) {
