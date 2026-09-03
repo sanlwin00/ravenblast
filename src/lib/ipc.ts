@@ -10,7 +10,15 @@ declare global {
       smtpTestProfile(profile: SmtpProfile): Promise<{ ok: boolean; error?: string }>
       smtpSendTest(args: { profileId: string; to: string; subject: string; bodyHtml: string }): Promise<{ ok: boolean; error?: string }>
 
-      contactsParseExcel(filePath: string): Promise<Record<string, string>[]>
+      contactsParseExcel(filePath: string): Promise<{
+        headers: string[]
+        sample: Record<string, string>[]
+        emailCol: string | null
+        nameCol: string | null
+        companyCol: string | null
+        contacts: import('../types').Contact[] | null
+      }>
+      contactsApplyMapping(filePath: string, mapping: { email: string; name: string; company: string }): Promise<import('../types').Contact[]>
       msgParse(filePath: string): Promise<{
         subject?: string
         bodyHtml?: string

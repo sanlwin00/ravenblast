@@ -36,6 +36,14 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   const [testSendEmail, setTestSendEmail] = useState('')
   const [testSendStatus, setTestSendStatus] = useState<{ ok: boolean; msg: string } | null>(null)
   const [testSending, setTestSending] = useState(false)
+  const [mappingDialog, setMappingDialog] = useState<{
+    filePath: string
+    headers: string[]
+    sample: Record<string, string>[]
+    emailCol: string
+    nameCol: string
+    companyCol: string
+  } | null>(null)
 
   // Load persisted draft on mount
   useEffect(() => {
@@ -91,10 +99,23 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
     const name = file?.name.toLowerCase() ?? ''
     if (!file || (!name.endsWith('.xlsx') && !name.endsWith('.csv'))) return
     try {
-      const parsed = await ipc.contactsParseExcel((file as unknown as { path: string }).path)
-      setContacts(parsed as unknown as import('../types').Contact[])
+      const filePath = (file as unknown as { path: string }).path
+      const result = await ipc.contactsParseExcel(filePath)
+      if (result.contacts !== null) {
+        setContacts(result.contacts)
+      } else {
+        // Email column not detected — show mapping dialog
+        setMappingDialog({
+          filePath,
+          headers: result.headers,
+          sample: result.sample,
+          emailCol: result.headers[0] ?? '',
+          nameCol: '',
+          companyCol: '',
+        })
+      }
     } catch {
-      alert('Failed to parse file. Make sure it has Email, Name, Company columns.')
+      alert('Failed to parse file.')
     }
   }
 
@@ -235,6 +256,75 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
                   className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
                 >
                   {testSending ? '⏳ Sending...' : '🧪 Send Test'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Column mapping dialog */}
+        {mappingDialog && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+              <h2 className="text-lg font-semibold">Map Columns</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                We couldn't detect the email column automatically. Choose which columns contain the data:
+              </p>
+
+              {/* Sample preview */}
+              {mappingDialog.sample.length > 0 && (
+                <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg text-xs">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-700/60">
+                      <tr>{mappingDialog.headers.map(h => <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">{h}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {mappingDialog.sample.map((row, i) => (
+                        <tr key={i} className="border-t border-gray-100 dark:border-gray-700">
+                          {mappingDialog.headers.map(h => <td key={h} className="px-3 py-1.5 truncate max-w-[120px]">{row[h]}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                {(['emailCol', 'nameCol', 'companyCol'] as const).map((field, i) => (
+                  <div key={field}>
+                    <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                      {['Email *', 'Name', 'Company'][i]}
+                    </label>
+                    <select
+                      value={mappingDialog[field]}
+                      onChange={e => setMappingDialog(d => d ? { ...d, [field]: e.target.value } : d)}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 text-sm bg-white dark:bg-gray-800"
+                    >
+                      {field !== 'emailCol' && <option value="">(none)</option>}
+                      {mappingDialog.headers.map(h => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setMappingDialog(null)}
+                  className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                >
+                  ✕ Cancel
+                </button>
+                <button
+                  disabled={!mappingDialog.emailCol}
+                  onClick={async () => {
+                    const d = mappingDialog
+                    setMappingDialog(null)
+                    const contacts = await ipc.contactsApplyMapping(d.filePath, { email: d.emailCol, name: d.nameCol, company: d.companyCol })
+                    setContacts(contacts)
+                  }}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+                >
+                  ✅ Import
                 </button>
               </div>
             </div>

@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Contacts
   contactsParseExcel: (filePath: string) => ipcRenderer.invoke('contacts:parse-excel', filePath),
+  contactsApplyMapping: (filePath: string, mapping: unknown) => ipcRenderer.invoke('contacts:apply-mapping', filePath, mapping),
 
   // MSG
   msgParse: (filePath: string) => ipcRenderer.invoke('msg:parse', filePath),
