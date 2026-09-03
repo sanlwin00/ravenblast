@@ -20,6 +20,32 @@
     "tinymce": "^6.8.6",
     "xlsx": "^0.18.5"
   },
+  "build": {
+    "appId": "com.ravenblast.app",
+    "productName": "RavenBlast",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
   "devDependencies": {
     "@types/nodemailer": "^6.4.24",
     "@types/react": "^18.3.31",
