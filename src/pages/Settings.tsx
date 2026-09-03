@@ -20,7 +20,6 @@ export default function Settings() {
   const [profiles, setProfiles] = useState<SmtpProfile[]>([])
   const [editing, setEditing] = useState<ProfileDraft | null>(null)
   const [showPw, setShowPw] = useState(false)
-  const [testResult, setTestResult] = useState<{ id: string; ok: boolean; error?: string } | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [modalTestResult, setModalTestResult] = useState<{ ok: boolean; error?: string } | null>(null)
   const [modalTesting, setModalTesting] = useState(false)
@@ -76,12 +75,6 @@ export default function Settings() {
     loadProfiles()
   }
 
-  async function test(id: string) {
-    const result = await ipc.smtpTest(id)
-    setTestResult({ id, ...result })
-    setTimeout(() => setTestResult(null), 5000)
-  }
-
   function field<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
     setEditing(prev => prev ? { ...prev, [key]: value } : prev)
   }
@@ -115,11 +108,6 @@ export default function Settings() {
               <div className="font-medium">{p.name}</div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{p.host}:{p.port} · {p.encryption.toUpperCase()} · {p.username}</div>
               {p.fromName && <div className="text-sm text-gray-500 dark:text-gray-400">From: {p.fromName}</div>}
-              {testResult?.id === p.id && (
-                <div className={`text-sm mt-1 font-medium ${testResult.ok ? 'text-green-600' : 'text-red-600'}`}>
-                  {testResult.ok ? '✓ Connection OK' : `✗ ${testResult.error}`}
-                </div>
-              )}
               {deleteConfirmId === p.id && (
                 <div className="mt-2 flex items-center gap-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded px-3 py-2">
                   <span className="text-red-800 dark:text-red-200 flex-1">Delete this account?</span>
@@ -139,7 +127,6 @@ export default function Settings() {
               )}
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <button onClick={() => test(p.id)} className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🔌 Test</button>
               <button onClick={() => { setEditing(p); setShowPw(false) }} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">✏️ Edit</button>
               <button onClick={() => setDeleteConfirmId(p.id)} className="flex items-center gap-1.5 border border-red-200 dark:border-red-800 bg-red-50/60 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 px-3 py-2 rounded-lg text-sm font-medium transition-colors">🗑️ Delete</button>
             </div>
