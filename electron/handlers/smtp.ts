@@ -41,9 +41,7 @@ export function createTransporter(profile: SmtpProfile) {
 }
 
 export function registerSmtpHandlers(): void {
-  ipcMain.handle('smtp:list', () => {
-    return store.get('smtpProfiles').map(p => ({ ...p, password: '***' }))
-  })
+  ipcMain.handle('smtp:list', () => store.get('smtpProfiles'))
 
   ipcMain.handle('smtp:save', (_event, profile: Partial<SmtpProfile>) => {
     const profiles = store.get('smtpProfiles')
@@ -85,8 +83,13 @@ export function registerSmtpHandlers(): void {
 
   // Test connection against raw profile values (before saving)
   ipcMain.handle('smtp:test-profile', async (_event, profile: SmtpProfile) => {
+    let resolved = profile
+    if (profile.password === '***' && profile.id) {
+      const stored = getProfileById(profile.id)
+      if (stored) resolved = { ...profile, password: stored.password }
+    }
     try {
-      const transporter = createTransporter(profile)
+      const transporter = createTransporter(resolved)
       await transporter.verify()
       return { ok: true }
     } catch (err) {
