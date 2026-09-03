@@ -44,6 +44,11 @@ export default function App() {
     navigate('/templates', { state: { editTemplate: template } })
   }
 
+  function handleSmtpSaved() {
+    setAiOpen(false)
+    navigate('/settings')
+  }
+
   return (
     <BlastStoreProvider>
       <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
@@ -67,6 +72,7 @@ export default function App() {
           onClose={() => setAiOpen(false)}
           onApplyTemplate={handleApplyTemplate}
           onSaveAsTemplate={handleSaveAsTemplate}
+          onSmtpSaved={handleSmtpSaved}
           onRemoveRecipient={handleRemoveRecipient}
           composerCtx={composerCtx}
         />

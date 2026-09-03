@@ -15,6 +15,7 @@ interface Props {
   onClose: () => void
   onApplyTemplate: (subject: string, body: string) => void
   onSaveAsTemplate: (template: import('../types').Template) => void
+  onSmtpSaved: () => void
   onRemoveRecipient: (email: string) => void
   composerCtx: ComposerCtx
 }
@@ -91,7 +92,7 @@ async function saveAsNewTemplate(subject: string, html: string): Promise<import(
   return result.template
 }
 
-export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onSaveAsTemplate, onRemoveRecipient, composerCtx }: Props) {
+export default function AIChat({ open, width, onWidthChange, onClose, onApplyTemplate, onSaveAsTemplate, onSmtpSaved, onRemoveRecipient, composerCtx }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -171,8 +172,11 @@ export default function AIChat({ open, width, onWidthChange, onClose, onApplyTem
     setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: 'Saving...' }))
     try {
       await ipc.smtpSave(config)
-      setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: `Account "${config.name || config.host}" saved` }))
-      setTimeout(() => setSaveStatus(s => { const n = { ...s }; delete n[`smtp-${idx}`]; return n }), 3000)
+      setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: `Saved "${config.name || config.host}"` }))
+      setTimeout(() => {
+        setSaveStatus(s => { const n = { ...s }; delete n[`smtp-${idx}`]; return n })
+        onSmtpSaved()
+      }, 800)
     } catch {
       setSaveStatus(s => ({ ...s, [`smtp-${idx}`]: 'Save failed' }))
     }
