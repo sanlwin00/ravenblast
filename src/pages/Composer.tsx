@@ -88,12 +88,13 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
     e.preventDefault()
     setRecipientDragOver(false)
     const file = e.dataTransfer.files[0]
-    if (!file || !file.name.endsWith('.xlsx')) return
+    const name = file?.name.toLowerCase() ?? ''
+    if (!file || (!name.endsWith('.xlsx') && !name.endsWith('.csv'))) return
     try {
       const parsed = await ipc.contactsParseExcel((file as unknown as { path: string }).path)
       setContacts(parsed as unknown as import('../types').Contact[])
     } catch {
-      alert('Failed to parse Excel file. Make sure it has Email, Name, Company columns.')
+      alert('Failed to parse file. Make sure it has Email, Name, Company columns.')
     }
   }
 
@@ -144,7 +145,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           onDragLeave={() => setRecipientDragOver(false)}
           onDrop={handleRecipientDrop}
           className={`border rounded-lg p-3 transition-colors ${recipientDragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}>
-          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Recipients — type emails or drop Excel (.xlsx) file</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Recipients — type emails or drop Excel (.xlsx) / CSV (.csv) file</label>
           <RecipientChipInput label="" values={contacts.map(c => c.email)} onChange={emails => {
             const existing = new Map(contacts.map(c => [c.email, c]))
             setContacts(emails.map(e => existing.get(e) ?? { email: e, name: '', company: '' }))
