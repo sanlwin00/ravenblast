@@ -35,6 +35,7 @@ export function createTransporter(profile: SmtpProfile) {
     port: profile.port,
     secure: profile.encryption === 'tls',
     auth: { user: profile.username, pass: profile.password },
+    tls: { rejectUnauthorized: false },
     ...(profile.encryption === 'starttls' ? { requireTLS: true } : {})
   })
 }
