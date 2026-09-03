@@ -43,7 +43,7 @@ export default function RecipientChipInput({ label, values, onChange }: Props) {
     <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
       <div
-        className="min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 flex flex-wrap gap-1 items-center cursor-text"
+        className="min-h-[48px] max-h-[120px] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 flex flex-wrap gap-1 items-start cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         {values.map(email => (
