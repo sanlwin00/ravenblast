@@ -145,7 +145,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           onDrop={handleRecipientDrop}
           className={`border rounded-lg p-3 transition-colors ${recipientDragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'}`}>
           <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Recipients — type emails or drop Excel (.xlsx) file</label>
-          <RecipientChipInput label="" values={contacts.map(c => c.email)} onChange={() => {}} />
+          <RecipientChipInput label="" values={contacts.map(c => c.email)} onChange={emails => {
+            const existing = new Map(contacts.map(c => [c.email, c]))
+            setContacts(emails.map(e => existing.get(e) ?? { email: e, name: '', company: '' }))
+          }} />
           {contacts.length > 0 && (
             <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-between">
               <span>✅ {contacts.length} recipients loaded</span>
