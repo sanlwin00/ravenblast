@@ -179,8 +179,10 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           )}
         </div>
 
-        <RecipientChipInput label="CC" values={cc} onChange={setCc} />
-        <RecipientChipInput label="BCC" values={bcc} onChange={setBcc} />
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-4">
+          <RecipientChipInput label="CC" values={cc} onChange={setCc} clearable />
+          <RecipientChipInput label="BCC" values={bcc} onChange={setBcc} clearable />
+        </div>
 
         <SmtpSelector value={smtpProfileId} onChange={setSmtpProfileId} />
 

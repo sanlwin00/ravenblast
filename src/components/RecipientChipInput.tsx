@@ -4,13 +4,14 @@ interface Props {
   label: string
   values: string[]
   onChange: (values: string[]) => void
+  clearable?: boolean
 }
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-export default function RecipientChipInput({ label, values, onChange }: Props) {
+export default function RecipientChipInput({ label, values, onChange, clearable }: Props) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -41,7 +42,12 @@ export default function RecipientChipInput({ label, values, onChange }: Props) {
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-sm font-medium">{label}</label>
+        {clearable && values.length > 0 && (
+          <button type="button" onClick={() => onChange([])} className="text-xs text-red-500 hover:text-red-700">Clear</button>
+        )}
+      </div>
       <div
         className="min-h-[48px] max-h-[120px] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 flex flex-wrap gap-1 items-start cursor-text"
         onClick={() => inputRef.current?.focus()}
