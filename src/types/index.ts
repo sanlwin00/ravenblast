@@ -38,8 +38,10 @@ export interface BlastConfig {
 export interface BlastProgress {
   sent: number
   total: number
+  failed: number
   currentEmail: string
   status: 'sending' | 'paused' | 'done' | 'aborted'
+  lastError?: string
 }
 
 export interface BlastError {

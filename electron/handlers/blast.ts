@@ -35,6 +35,8 @@ interface BlastProgress {
   total: number
   currentEmail: string
   status: 'sending' | 'paused' | 'done' | 'aborted'
+  failed: number
+  lastError?: string
 }
 
 interface BlastError {
@@ -102,14 +104,9 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
     const html = resolveTags(config.bodyHtml, contact.name, contact.company)
 
     const win = getWindow()
-    const progress: BlastProgress = {
-      sent,
-      total,
-      currentEmail: contact.email,
-      status: paused ? 'paused' : 'sending'
-    }
-    win?.webContents.send('blast:progress', progress)
+    win?.webContents.send('blast:progress', { sent, total, failed, currentEmail: contact.email, status: paused ? 'paused' : 'sending' } as BlastProgress)
 
+    let lastError: string | undefined
     try {
       await transporter.sendMail({
         from: `"${profile.fromName}" <${profile.username}>`,
@@ -124,15 +121,11 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
       sent++
     } catch (err) {
       failed++
-      errors.push({ email: contact.email, message: (err as Error).message })
+      lastError = (err as Error).message
+      errors.push({ email: contact.email, message: lastError })
     }
 
-    getWindow()?.webContents.send('blast:progress', {
-      sent,
-      total,
-      currentEmail: contact.email,
-      status: cancelled ? 'aborted' : 'sending'
-    } as BlastProgress)
+    getWindow()?.webContents.send('blast:progress', { sent, total, failed, currentEmail: contact.email, status: cancelled ? 'aborted' : 'sending', lastError } as BlastProgress)
 
     if (i < config.to.length - 1 && !cancelled) {
       const delaySec = config.delayMin + Math.random() * (config.delayMax - config.delayMin)

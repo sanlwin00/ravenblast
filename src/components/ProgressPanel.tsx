@@ -67,10 +67,14 @@ export default function ProgressPanel({ onDone }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 text-center">
+      <div className="grid grid-cols-4 gap-3 text-center">
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
           <div className="text-2xl font-bold text-green-600">{progress.sent}</div>
           <div className="text-xs text-gray-500 mt-0.5">Sent ✅</div>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
+          <div className="text-2xl font-bold text-red-500">{progress.failed ?? 0}</div>
+          <div className="text-xs text-gray-500 mt-0.5">Failed ❌</div>
         </div>
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
           <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">{remaining}</div>
@@ -81,6 +85,11 @@ export default function ProgressPanel({ onDone }: Props) {
           <div className="text-xs text-gray-500 mt-0.5">Total</div>
         </div>
       </div>
+      {progress.lastError && (
+        <div className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 rounded px-3 py-2 truncate" title={progress.lastError}>
+          ⚠️ Last error: {progress.lastError}
+        </div>
+      )}
 
       <div className="flex gap-3">
         {progress.status === 'paused' ? (
