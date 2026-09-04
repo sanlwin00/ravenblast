@@ -3,7 +3,6 @@ import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import { randomUUID } from 'crypto'
-import juice from 'juice'
 import { getProfileById, createTransporter } from './smtp'
 
 interface Contact {
@@ -100,7 +99,7 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
 
     const contact = config.to[i]
     const subject = resolveTags(config.subject, contact.name, contact.company)
-    const html = juice(resolveTags(config.bodyHtml, contact.name, contact.company))
+    const html = resolveTags(config.bodyHtml, contact.name, contact.company)
 
     const win = getWindow()
     const progress: BlastProgress = {
