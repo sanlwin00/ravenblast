@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { existsSync } from 'fs'
 import { registerSmtpHandlers } from './handlers/smtp'
 import { registerBlastHandlers } from './handlers/blast'
 import { registerContactHandlers } from './handlers/contacts'
@@ -12,11 +13,13 @@ import { registerDraftHandlers } from './handlers/draft'
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
+  const iconPath = join(app.getAppPath(), 'resources', 'icon.ico')
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 900,
     minHeight: 700,
+    icon: existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
       preload: join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
