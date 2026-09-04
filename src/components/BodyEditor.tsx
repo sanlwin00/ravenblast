@@ -78,7 +78,7 @@ export default function BodyEditor({ value, onChange }: Props) {
 
       {mode === 'visual' && (
         <Editor
-          tinymceScriptSrc="/tinymce/tinymce.min.js"
+          tinymceScriptSrc="tinymce/tinymce.min.js"
           value={value}
           onEditorChange={(content) => onChange(content)}
           init={{
