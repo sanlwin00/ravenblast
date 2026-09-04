@@ -213,10 +213,11 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           >
             🧪 Test Send
           </button>
+          <span className="text-xs text-gray-400 dark:text-gray-500 mx-auto">⏱ {delayMin}–{delayMax}s delay</span>
           <button
             onClick={handleSend}
             disabled={!canSend}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             📤 Send to All ({contacts.length})
           </button>
