@@ -1,11 +1,19 @@
+export type AccountType = 'smtp' | 'brevo'
+
 export interface SmtpProfile {
   id: string
   name: string
-  host: string
-  port: number
-  encryption: 'tls' | 'starttls' | 'none'
-  username: string
-  password: string
+  type: AccountType
+  // SMTP fields
+  host?: string
+  port?: number
+  encryption?: 'tls' | 'starttls' | 'none'
+  username?: string
+  password?: string
+  // Brevo API fields
+  apiKey?: string
+  senderEmail?: string
+  // shared
   fromName: string
   defaultReplyTo: string
 }

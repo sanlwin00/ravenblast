@@ -3,7 +3,7 @@ import { writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 import { randomUUID } from 'crypto'
-import { getProfileById, createTransporter } from './smtp'
+import { getProfileById, sendAccountMail } from './smtp'
 
 interface Contact {
   email: string
@@ -89,8 +89,6 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
     return
   }
 
-  const transporter = createTransporter(profile)
-
   for (let i = 0; i < config.to.length; i++) {
     if (cancelled) break
 
@@ -108,15 +106,14 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
 
     let lastError: string | undefined
     try {
-      await transporter.sendMail({
-        from: `"${profile.fromName}" <${profile.username}>`,
+      await sendAccountMail(profile, {
         to: contact.email,
         replyTo: config.replyTo || profile.defaultReplyTo || undefined,
-        cc: config.cc.length ? config.cc : undefined,
-        bcc: config.bcc.length ? config.bcc : undefined,
+        cc: config.cc,
+        bcc: config.bcc,
         subject,
         html,
-        attachments: config.attachments.map(a => ({ filename: a.name, path: a.path }))
+        attachments: config.attachments
       })
       sent++
     } catch (err) {

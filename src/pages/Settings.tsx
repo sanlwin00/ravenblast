@@ -7,11 +7,14 @@ type ProfileDraft = Omit<SmtpProfile, 'id'> & { id?: string }
 
 const blankProfile: ProfileDraft = {
   name: '',
+  type: 'smtp',
   host: '',
   port: 587,
   encryption: 'starttls',
   username: '',
   password: '',
+  apiKey: '',
+  senderEmail: '',
   fromName: '',
   defaultReplyTo: ''
 }
@@ -106,7 +109,11 @@ export default function Settings() {
           <div key={p.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex items-start justify-between gap-4 hover:shadow-md transition-shadow">
             <div className="flex-1 min-w-0">
               <div className="font-medium">{p.name}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">{p.host}:{p.port} · {p.encryption.toUpperCase()} · {p.username}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {p.type === 'brevo'
+                  ? `Brevo API · ${p.senderEmail}`
+                  : `${p.host}:${p.port} · ${p.encryption?.toUpperCase()} · ${p.username}`}
+              </div>
               {p.fromName && <div className="text-sm text-gray-500 dark:text-gray-400">From: {p.fromName}</div>}
               {deleteConfirmId === p.id && (
                 <div className="mt-2 flex items-center gap-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded px-3 py-2">
@@ -192,51 +199,101 @@ export default function Settings() {
                 className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Host</label>
-                <input type="text" value={editing.host} onChange={e => field('host', e.target.value)}
-                  placeholder="smtp.gmail.com"
-                  className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Port</label>
-                <input type="number" value={editing.port} onChange={e => field('port', Number(e.target.value))}
-                  className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
+            <div>
+              <label className="block text-sm font-medium mb-1">Provider</label>
+              <div className="flex gap-2">
+                {(['smtp', 'brevo'] as const).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { field('type', t); setModalTestResult(null) }}
+                    className={`flex-1 min-h-[48px] rounded-lg text-sm font-medium border transition-colors ${
+                      editing.type === t
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {t === 'smtp' ? 'SMTP' : 'Brevo API'}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Encryption</label>
-              <select value={editing.encryption} onChange={e => field('encryption', e.target.value as SmtpProfile['encryption'])}
-                className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800">
-                <option value="tls">TLS (port 465)</option>
-                <option value="starttls">STARTTLS (port 587)</option>
-                <option value="none">None</option>
-              </select>
-            </div>
+            {editing.type === 'brevo' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Brevo API Key</label>
+                  <div className="relative">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={editing.apiKey ?? ''}
+                      onChange={e => field('apiKey', e.target.value)}
+                      placeholder="xkeysib-..."
+                      className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 pr-16 bg-transparent"
+                    />
+                    <button type="button" onClick={() => setShowPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
+                      {showPw ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Sender Email</label>
+                  <input type="email" value={editing.senderEmail ?? ''} onChange={e => field('senderEmail', e.target.value)}
+                    placeholder="sender@yourdomain.com"
+                    className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Must be a verified sender in your Brevo account.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Host</label>
+                    <input type="text" value={editing.host ?? ''} onChange={e => field('host', e.target.value)}
+                      placeholder="smtp.gmail.com"
+                      className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Port</label>
+                    <input type="number" value={editing.port ?? 587} onChange={e => field('port', Number(e.target.value))}
+                      className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
-              <input type="text" value={editing.username} onChange={e => field('username', e.target.value)}
-                className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Encryption</label>
+                  <select value={editing.encryption ?? 'starttls'} onChange={e => field('encryption', e.target.value as SmtpProfile['encryption'])}
+                    className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-800">
+                    <option value="tls">TLS (port 465)</option>
+                    <option value="starttls">STARTTLS (port 587)</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={editing.password}
-                  onChange={e => field('password', e.target.value)}
-                  className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 pr-16 bg-transparent"
-                />
-                <button type="button" onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
-                  {showPw ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Username</label>
+                  <input type="text" value={editing.username ?? ''} onChange={e => field('username', e.target.value)}
+                    className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={editing.password ?? ''}
+                      onChange={e => field('password', e.target.value)}
+                      className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 pr-16 bg-transparent"
+                    />
+                    <button type="button" onClick={() => setShowPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
+                      {showPw ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1">From Name</label>
