@@ -65,8 +65,9 @@ function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function resolveTags(template: string, name: string, company: string): string {
+function resolveTags(template: string, email: string, name: string, company: string): string {
   return template
+    .replace(/\{\{Email\}\}/g, email || '')
     .replace(/\{\{Name\}\}/g, name || '')
     .replace(/\{\{Company\}\}/g, company || '')
 }
@@ -98,8 +99,8 @@ async function runBlast(config: BlastConfig, getWindow: () => BrowserWindow | nu
     if (cancelled) break
 
     const contact = config.to[i]
-    const subject = resolveTags(config.subject, contact.name, contact.company)
-    const html = resolveTags(config.bodyHtml, contact.name, contact.company)
+    const subject = resolveTags(config.subject, contact.email, contact.name, contact.company)
+    const html = resolveTags(config.bodyHtml, contact.email, contact.name, contact.company)
 
     const win = getWindow()
     win?.webContents.send('blast:progress', { sent, total, failed, currentEmail: contact.email, status: paused ? 'paused' : 'sending' } as BlastProgress)
