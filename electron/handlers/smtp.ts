@@ -207,7 +207,11 @@ export function registerSmtpHandlers(): void {
     const profile = getProfileById(profileId)
     if (!profile) return { ok: false, error: 'No account selected' }
     try {
-      await sendAccountMail(profile, { to, subject: `[TEST] ${subject}`, html: bodyHtml })
+      const resolved = (html: string) => html
+        .replace(/\{\{Email\}\}/g, to)
+        .replace(/\{\{Name\}\}/g, '')
+        .replace(/\{\{Company\}\}/g, '')
+      await sendAccountMail(profile, { to, subject: `[TEST] ${resolved(subject)}`, html: resolved(bodyHtml) })
       return { ok: true }
     } catch (err) {
       return { ok: false, error: (err as Error).message }
