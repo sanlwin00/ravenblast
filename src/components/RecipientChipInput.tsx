@@ -76,7 +76,6 @@ export default function RecipientChipInput({ label, values, onChange, clearable 
           placeholder={values.length === 0 ? 'Type email then press Enter, Tab, or comma' : ''}
         />
       </div>
-      <p className="text-xs text-gray-400 mt-0.5">Press Enter, Tab, or comma to add · Backspace to remove last</p>
     </div>
   )
 }
