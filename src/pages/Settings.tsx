@@ -115,6 +115,15 @@ export default function Settings() {
                   : `${p.host}:${p.port} · ${p.encryption?.toUpperCase()} · ${p.username}`}
               </div>
               {p.fromName && <div className="text-sm text-gray-500 dark:text-gray-400">From: {p.fromName}</div>}
+              <div className="mt-2">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
+                  p.type === 'brevo'
+                    ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
+                    : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                }`}>
+                  {p.type === 'brevo' ? 'Brevo API' : 'SMTP'}
+                </span>
+              </div>
               {deleteConfirmId === p.id && (
                 <div className="mt-2 flex items-center gap-2 text-sm bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded px-3 py-2">
                   <span className="text-red-800 dark:text-red-200 flex-1">Delete this account?</span>

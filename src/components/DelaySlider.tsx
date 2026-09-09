@@ -28,13 +28,13 @@ export default function DelaySlider({ min, max, onMinChange, onMaxChange }: Prop
           <input
             type="range"
             min={1}
-            max={30}
+            max={120}
             value={min}
             onChange={e => handleMinChange(Number(e.target.value))}
             className="w-full accent-[#0078D4]"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>1s</span><span>30s</span>
+            <span>1s</span><span>120s</span>
           </div>
         </div>
         <div>
@@ -45,13 +45,13 @@ export default function DelaySlider({ min, max, onMinChange, onMaxChange }: Prop
           <input
             type="range"
             min={1}
-            max={30}
+            max={120}
             value={max}
             onChange={e => handleMaxChange(Number(e.target.value))}
             className="w-full accent-[#0078D4]"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>1s</span><span>30s</span>
+            <span>1s</span><span>120s</span>
           </div>
         </div>
       </div>
