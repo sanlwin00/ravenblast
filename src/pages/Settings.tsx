@@ -215,12 +215,13 @@ export default function Settings() {
                   <button
                     key={t}
                     type="button"
-                    onClick={() => { field('type', t); setModalTestResult(null) }}
+                    onClick={() => { if (!editing.id) { field('type', t); setModalTestResult(null) } }}
+                    disabled={!!editing.id}
                     className={`flex-1 min-h-[48px] rounded-lg text-sm font-medium border transition-colors ${
                       editing.type === t
                         ? 'bg-blue-600 border-blue-600 text-white'
-                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
+                        : 'border-gray-300 dark:border-gray-600'
+                    } ${editing.id ? 'opacity-60 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                     {t === 'smtp' ? 'SMTP' : 'Brevo API'}
                   </button>
@@ -240,10 +241,12 @@ export default function Settings() {
                       placeholder="xkeysib-..."
                       className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 pr-16 bg-transparent"
                     />
-                    <button type="button" onClick={() => setShowPw(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
-                      {showPw ? 'Hide' : 'Show'}
-                    </button>
+                    {!editing.id && (
+                      <button type="button" onClick={() => setShowPw(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
+                        {showPw ? 'Hide' : 'Show'}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -295,10 +298,12 @@ export default function Settings() {
                       onChange={e => field('password', e.target.value)}
                       className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 pr-16 bg-transparent"
                     />
-                    <button type="button" onClick={() => setShowPw(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
-                      {showPw ? 'Hide' : 'Show'}
-                    </button>
+                    {!editing.id && (
+                      <button type="button" onClick={() => setShowPw(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700">
+                        {showPw ? 'Hide' : 'Show'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </>
