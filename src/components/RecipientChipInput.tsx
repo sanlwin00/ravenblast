@@ -42,14 +42,14 @@ export default function RecipientChipInput({ label, values, onChange, clearable 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-0.5">
         <label className="block text-sm font-medium">{label}</label>
         {clearable && values.length > 0 && (
           <button type="button" onClick={() => onChange([])} className="text-xs text-red-500 hover:text-red-700">Clear</button>
         )}
       </div>
       <div
-        className="min-h-[48px] max-h-[120px] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 flex flex-wrap gap-1 items-start cursor-text"
+        className="min-h-[36px] max-h-[120px] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded px-2 py-1 flex flex-wrap gap-1 items-start cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         {values.map(email => (

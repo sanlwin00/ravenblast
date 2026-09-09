@@ -152,7 +152,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-5">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         {/* Recipients */}
         <div
           onDragOver={e => { e.preventDefault(); setRecipientDragOver(true) }}
@@ -181,13 +181,13 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
         {/* Row: Subject | BCC */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">Subject</label>
+            <label className="block text-sm font-medium mb-0.5">Subject</label>
             <input
               type="text"
               value={subject}
               onChange={e => setSubject(e.target.value)}
               placeholder="Subject — supports {{Name}} and {{Company}} merge tags"
-              className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
+              className="w-full h-9 border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 text-sm bg-transparent"
             />
           </div>
           <RecipientChipInput label="BCC" values={bcc} onChange={setBcc} clearable />
@@ -249,7 +249,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
                   onKeyDown={e => { if (e.key === 'Enter') handleTestSend() }}
                   placeholder="you@example.com"
                   autoFocus
-                  className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
+                  className="w-full h-9 border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 text-sm bg-transparent"
                 />
               </div>
               {testSendStatus && (
