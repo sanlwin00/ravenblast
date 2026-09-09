@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
 import { ipc } from '../lib/ipc'
+import type { AccountType } from '../types'
 
 interface Profile {
   id: string
   name: string
+  type: AccountType
+  username?: string
+  senderEmail?: string
 }
 
 interface Props {
@@ -15,8 +19,20 @@ export default function SmtpSelector({ value, onChange }: Props) {
   const [profiles, setProfiles] = useState<Profile[]>([])
 
   useEffect(() => {
-    ipc.smtpList().then(list => setProfiles(list.map(p => ({ id: p.id, name: p.name }))))
+    ipc.smtpList().then(list => setProfiles(list.map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      username: p.username,
+      senderEmail: p.senderEmail
+    }))))
   }, [])
+
+  function label(p: Profile): string {
+    const email = p.type === 'brevo' ? p.senderEmail : p.username
+    const tag = p.type === 'brevo' ? ' (Brevo API)' : ' (SMTP)'
+    return p.name ? `${p.name} — ${email ?? ''}${tag}` : `${email ?? ''}${tag}`
+  }
 
   return (
     <div>
@@ -28,7 +44,7 @@ export default function SmtpSelector({ value, onChange }: Props) {
       >
         <option value="">Select email account...</option>
         {profiles.map(p => (
-          <option key={p.id} value={p.id}>{p.name}</option>
+          <option key={p.id} value={p.id}>{label(p)}</option>
         ))}
       </select>
     </div>

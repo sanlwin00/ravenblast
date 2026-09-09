@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ipc } from '../lib/ipc'
 import { useBlastStore } from '../store/blastStore'
-import type { Attachment, BlastConfig, Template } from '../types'
+import type { Attachment, BlastConfig } from '../types'
 import SmtpSelector from '../components/SmtpSelector'
 import RecipientChipInput from '../components/RecipientChipInput'
 import BodyEditor from '../components/BodyEditor'
 import TemplatePicker from '../components/TemplatePicker'
-import AttachmentRow from '../components/AttachmentRow'
+import AttachmentRow, { pickAttachmentFiles } from '../components/AttachmentRow'
 import ProgressPanel from '../components/ProgressPanel'
 
 interface Props {
@@ -31,7 +31,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   const [sending, setSending] = useState(false)
   const [recipientDragOver, setRecipientDragOver] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
-  const [savedTemplates, setSavedTemplates] = useState<Template[]>([])
   const [testSendOpen, setTestSendOpen] = useState(false)
   const [testSendEmail, setTestSendEmail] = useState('')
   const [testSendStatus, setTestSendStatus] = useState<{ ok: boolean; msg: string } | null>(null)
@@ -64,10 +63,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
     if (!draftLoaded) return
     ipc.draftSave({ smtpProfileId, cc, bcc, subject, bodyHtml })
   }, [smtpProfileId, cc, bcc, subject, bodyHtml, draftLoaded])
-
-  useEffect(() => {
-    ipc.templatesList().then(setSavedTemplates)
-  }, [])
 
   useEffect(() => {
     if (aiTemplate) {
@@ -149,8 +144,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
   const canSend = Boolean(smtpProfileId && contacts.length > 0 && subject && bodyHtml)
   const canTestSend = Boolean(smtpProfileId && subject && bodyHtml)
 
-  void savedTemplates
-
   return (
     <div className="w-[90%] mx-auto px-4 py-6 space-y-4">
       {sending && (
@@ -160,7 +153,7 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-5">
-        {/* Recipients - drag-drop Excel or type emails */}
+        {/* Recipients */}
         <div
           onDragOver={e => { e.preventDefault(); setRecipientDragOver(true) }}
           onDragLeave={() => setRecipientDragOver(false)}
@@ -179,33 +172,52 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           )}
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 grid grid-cols-2 gap-3">
+        {/* Row: Send From | CC */}
+        <div className="grid grid-cols-2 gap-3">
+          <SmtpSelector value={smtpProfileId} onChange={setSmtpProfileId} />
           <RecipientChipInput label="CC" values={cc} onChange={setCc} clearable />
+        </div>
+
+        {/* Row: Subject | BCC */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              placeholder="Subject — supports {{Name}} and {{Company}} merge tags"
+              className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
+            />
+          </div>
           <RecipientChipInput label="BCC" values={bcc} onChange={setBcc} clearable />
         </div>
 
-        <SmtpSelector value={smtpProfileId} onChange={setSmtpProfileId} />
+        {/* Body editor with template picker in toolbar */}
+        <BodyEditor
+          value={bodyHtml}
+          onChange={setBodyHtml}
+          toolbarSlot={
+            <TemplatePicker
+              onSelect={(html, subj) => { setBodyHtml(html); if (subj) setSubject(subj) }}
+              hasContent={bodyHtml.length > 0}
+            />
+          }
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Subject</label>
-          <input
-            type="text"
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            placeholder="Subject — supports {{Name}} and {{Company}} merge tags"
-            className="w-full min-h-[48px] border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-transparent"
-          />
-        </div>
-
+        {/* Attachment list */}
         <AttachmentRow attachments={attachments} onChange={setAttachments} />
 
-        <TemplatePicker
-          onSelect={(html, subject) => { setBodyHtml(html); if (subject) setSubject(subject) }}
-          hasContent={bodyHtml.length > 0}
-        />
-        <BodyEditor value={bodyHtml} onChange={setBodyHtml} />
-
+        {/* Bottom bar */}
         <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={() => pickAttachmentFiles(attachments, setAttachments)}
+            className="flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          >
+            📎 Attach
+          </button>
+          <span className="text-xs text-gray-400 dark:text-gray-500 mx-auto">⏱ {delayMin}–{delayMax}s delay</span>
           <button
             onClick={() => { setTestSendOpen(true); setTestSendStatus(null) }}
             disabled={!canTestSend}
@@ -213,7 +225,6 @@ export default function Composer({ aiTemplate, onAiTemplateApplied, onContextCha
           >
             🧪 Test Send
           </button>
-          <span className="text-xs text-gray-400 dark:text-gray-500 mx-auto">⏱ {delayMin}–{delayMax}s delay</span>
           <button
             onClick={handleSend}
             disabled={!canSend}

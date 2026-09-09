@@ -4,11 +4,12 @@ import { Editor } from '@tinymce/tinymce-react'
 interface Props {
   value: string
   onChange: (value: string) => void
+  toolbarSlot?: React.ReactNode
 }
 
 type EditMode = 'visual' | 'html'
 
-export default function BodyEditor({ value, onChange }: Props) {
+export default function BodyEditor({ value, onChange, toolbarSlot }: Props) {
   const [mode, setMode] = useState<EditMode>('visual')
   const [split, setSplit] = useState(false)
 
@@ -57,6 +58,7 @@ export default function BodyEditor({ value, onChange }: Props) {
   return (
     <div>
       <div className="flex gap-1.5 mb-2 flex-wrap items-center">
+        {toolbarSlot && <div className="flex-1 min-w-0">{toolbarSlot}</div>}
         <div className="ml-auto flex gap-1.5">
           {toolbarBtn(mode === 'visual', () => setMode('visual'), '✏️ Visual')}
           {toolbarBtn(mode === 'html', () => setMode('html'), '</> HTML')}
